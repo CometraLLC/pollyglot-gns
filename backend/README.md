@@ -50,6 +50,8 @@ make build        # Build production binary
 | `make dev-clean` | Clean restart (removes volumes) |
 | `make run` | Run locally |
 | `make build` | Build production binary |
+| `make test` | Run all tests with the race detector |
+| `make test-pkg pkg=./pkg/x` | Run one package's tests verbosely |
 | `make create-migration name=X` | Create new migration file |
 | `make migrate-up` | Run pending migrations |
 | `make migrate-down` | Rollback last migration |
@@ -114,6 +116,43 @@ backend/
        r.Post("/", yourHandler.Create)
    })
    ```
+
+## Testing
+
+Run everything with `make test` (uses `-race -count=1`). Stack: stdlib
+`testing` + [testify](https://github.com/stretchr/testify) assertions.
+See `docs/DECISIONS.md` (D-005) at the repo root for the rationale.
+
+Conventions:
+
+- **Table-driven tests** for pure logic (see `pkg/validator/validator_test.go`).
+- **Service tests use hand-written fakes** of the module's repository
+  interface, defined in the `_test.go` file — not SQL mocks. Keep
+  repositories thin (GORM calls only) so services hold all testable logic:
+
+  ```go
+  type fakeDeckRepo struct {
+      decks map[string]shared.Deck
+      err   error // set to force the error path
+  }
+
+  func (f *fakeDeckRepo) GetByID(ctx context.Context, id string) (shared.Deck, error) {
+      if f.err != nil {
+          return shared.Deck{}, f.err
+      }
+      d, ok := f.decks[id]
+      if !ok {
+          return shared.Deck{}, gorm.ErrRecordNotFound
+      }
+      return d, nil
+  }
+  ```
+
+- **Handler tests** go through `net/http/httptest` with a fake service,
+  asserting status codes and JSON bodies (see `pkg/response/response_test.go`
+  for the recorder pattern).
+- New business logic lands **test-first**: write the failing test, then the
+  implementation.
 
 ## API Routes
 

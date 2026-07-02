@@ -61,11 +61,14 @@ for each issue.
 
 **Decision:** For each issue: branch `feat/<issue>-<slug>` (or `fix/`,
 `chore/`) → write failing tests first → implement → run the full test suite →
-squash-merge to `main` via PR only when green → push. PR bodies link the
-issue.
+merge to `main` via PR only when green → push. PR bodies link the issue.
 
-**Why:** Matches the requested process exactly; squash merges keep `main`
-linear with one commit per issue.
+**Why:** Matches the requested process exactly.
+
+**Amended 2026-07-02:** Commits are atomic — one logical change per commit —
+per explicit user direction, and PRs are merged with merge commits (not
+squash) so that atomic history survives on `main`. The first two PRs (#1,
+#2) predate this and were squashed.
 
 ## D-004: Frontend testing stack — Vitest + Testing Library
 
