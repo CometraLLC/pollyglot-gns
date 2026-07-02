@@ -89,7 +89,7 @@ export default function RegisterPage() {
                 <CardHeader className="space-y-1">
                     <CardTitle className="text-3xl font-bold text-center">Create Account</CardTitle>
                     <CardDescription className="text-center">
-                        Sign up to get started with GNS
+                        Sign up to start learning with Pollyglot
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
