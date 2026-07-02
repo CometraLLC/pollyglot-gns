@@ -2,6 +2,7 @@ package decks
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -29,6 +30,9 @@ type Repository interface {
 	GetCardByID(ctx context.Context, id uuid.UUID) (*models.Card, error)
 	UpdateCard(ctx context.Context, card *models.Card) error
 	SoftDeleteCard(ctx context.Context, id uuid.UUID) error
+
+	GetDueCards(ctx context.Context, deckID uuid.UUID, before time.Time, limit int) ([]models.Card, error)
+	CreateReview(ctx context.Context, review *models.Review) error
 }
 
 type repository struct {
@@ -128,4 +132,18 @@ func (r *repository) SoftDeleteCard(ctx context.Context, id uuid.UUID) error {
 		Model(&models.Card{}).
 		Where("id = ? AND deleted_at IS NULL", id).
 		Update("deleted_at", gorm.Expr("NOW()")).Error
+}
+
+func (r *repository) GetDueCards(ctx context.Context, deckID uuid.UUID, before time.Time, limit int) ([]models.Card, error) {
+	var cards []models.Card
+	err := r.db.WithContext(ctx).
+		Where("deck_id = ? AND deleted_at IS NULL AND due_at <= ?", deckID, before).
+		Order("due_at ASC").
+		Limit(limit).
+		Find(&cards).Error
+	return cards, err
+}
+
+func (r *repository) CreateReview(ctx context.Context, review *models.Review) error {
+	return r.db.WithContext(ctx).Create(review).Error
 }
