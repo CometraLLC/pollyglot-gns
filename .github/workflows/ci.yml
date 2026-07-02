@@ -1,4 +1,4 @@
-name: GNS CI/CD Pipeline
+name: Pollyglot CI
 
 on:
   push:
@@ -31,6 +31,9 @@ jobs:
           version: latest
           working-directory: backend
 
+      - name: Run tests
+        run: go test ./... -race -count=1
+
   frontend-test:
     name: Frontend Lint & Build
     runs-on: ubuntu-latest
@@ -51,6 +54,9 @@ jobs:
 
       - name: Run Linting
         run: bun run lint
+
+      - name: Run Tests
+        run: bun run test
 
       - name: Run Build
         run: bun run build
