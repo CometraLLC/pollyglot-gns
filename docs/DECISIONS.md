@@ -155,3 +155,52 @@ landing page, and delete `app/old/` and the demo pages.
 product-relevant (Pollyglot needs accounts and roles); regenerating them later
 would be waste. The demo pages are starter-kit marketing with no product
 value. Everything deleted stays recoverable in git history.
+
+## D-009: Frontend API request contract is pinned by tests
+
+**Date:** 2026-07-02 (issue Pollyglot#12)
+
+**Context:** The register form 404'd in manual testing because the env base
+URL and the service paths both carried `/v1` (Pollyglot#19). Nothing caught
+it: component tests mock the service layer, and the backend tests don't know
+what URLs the frontend uses.
+
+**Decision:** `decks.service.test.ts` mocks the axios client and asserts the
+exact path, verb, and payload of every service call. New services get the
+same contract suite.
+
+**Why:** It is the only cheap place to catch path drift (double prefixes,
+renamed routes) before a human hits it in the browser.
+
+## D-010: Study sessions run on a client-side queue snapshot
+
+**Date:** 2026-07-02 (issue Pollyglot#13)
+
+**Context:** The study queue endpoint returns due cards. TanStack Query
+refetches on window focus, and each review changes what is due — a live
+query would reorder or shrink the deck mid-session.
+
+**Decision:** The session copies the queue into local state the first time
+it loads and iterates over that snapshot; reviews post per card, and a
+failed review keeps the learner on the same card with an inline error
+instead of advancing.
+
+**Why:** A learner mid-session must never see cards shuffle under them, and
+a lost network blip must not silently drop a review (the rating the user
+chose is the product's core data).
+
+## D-011: Repo-wide `make check` mirrors CI exactly
+
+**Date:** 2026-07-02
+
+**Context:** The gates live in two toolchains (Go and bun) and CI runs both;
+running them by hand meant remembering four commands in two directories.
+
+**Decision:** A root Makefile provides `make check` (everything CI runs),
+`make test`, `make dev`, and `make dev-down`. Shared frontend test helpers
+(`src/lib/test-utils.tsx`: `renderWithQuery`, `mockDeck`, `mockCard`) remove
+the per-file QueryClient/factory boilerplate.
+
+**Why:** One command that equals CI keeps "all tests pass before merging"
+honest locally, and shared factories keep exhaustive test suites cheap to
+write.

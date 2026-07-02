@@ -44,6 +44,34 @@
 | **i18n**     | next-intl (EN, ID)                               |
 | **DevOps**   | Docker, Docker Compose, Makefile                 |
 
+## 🦜 Pollyglot
+
+This repo is being built out into **Pollyglot** — a language-learning app on
+top of the GNS starter. Product surface so far (all under `/pollyglot` after
+signing in):
+
+| Feature | Status | Where |
+| ------- | ------ | ----- |
+| Decks & cards CRUD | ✅ | `/pollyglot/decks`, API `/v1/decks` |
+| Spaced-repetition study (SM-2) | ✅ | `/pollyglot/study`, API `/v1/cards/{id}/review` + `/v1/decks/{id}/queue` |
+| Translate | 🔜 | Pollyglot#14 |
+| Conversation practice | 🔜 | Pollyglot#15 |
+| Progress & stats | 🔜 | Pollyglot#16 |
+
+Every engineering decision is logged with rationale in
+[`docs/DECISIONS.md`](docs/DECISIONS.md). Work is issue-driven on
+[CometraLLC/Pollyglot](https://github.com/CometraLLC/Pollyglot/issues); each
+issue lands via a test-first PR that must be green before merge.
+
+### Development commands (repo root)
+
+```bash
+make check   # everything CI runs: backend lint+tests, frontend lint+tests+build
+make test    # all tests only
+make dev     # docker stack (API :8080) + Next dev server (:3000)
+make dev-down
+```
+
 ## 🚀 Quick Start
 
 ### Prerequisites

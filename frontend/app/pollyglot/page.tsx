@@ -18,7 +18,7 @@ const tiles = [
 		description: 'Review the cards that are due today.',
 		href: '/pollyglot/study',
 		icon: GraduationCap,
-		available: false,
+		available: true,
 	},
 	{
 		title: 'Translate',
