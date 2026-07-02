@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -112,7 +111,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		ctxRes.Email = claims.Email
 		ctxRes.Role = claims.Role
 
-		sharingCtx := context.WithValue(ctx, ContextUser, ctxRes)
+		sharingCtx := SetUserContext(ctx, ctxRes)
 		next.ServeHTTP(w, r.WithContext(sharingCtx))
 	})
 }
