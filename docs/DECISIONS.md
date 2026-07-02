@@ -204,3 +204,23 @@ the per-file QueryClient/factory boilerplate.
 **Why:** One command that equals CI keeps "all tests pass before merging"
 honest locally, and shared factories keep exhaustive test suites cheap to
 write.
+
+## D-012: Startup seeder with a dev-only tier
+
+**Date:** 2026-07-02 (issue Pollyglot#20)
+
+**Context:** Marc wanted a seeded account to sign in without registering.
+The starter shipped `migrations/seeders/rbac_seeder.sql` but nothing ever
+executed it, so RBAC baseline data silently never landed.
+
+**Decision:** `pkg/seed` runs after migrations on every boot:
+`migrations/seeders/*.sql` in every environment, `migrations/seeders/dev/`
+only when `-env development`. Files run in lexicographic order and must be
+idempotent (`ON CONFLICT DO NOTHING`). Dev tier seeds
+`demo@pollyglot.dev` / `Password123!` (fixed UUIDs, bcrypt-hashed) plus a
+six-card starter deck.
+
+**Why:** Seeds-as-SQL keeps them reviewable and idempotent-by-construction;
+running on boot (not as migrations) keeps reference/dev data out of the
+schema history; the dev/ split makes it impossible to ship the demo account
+to production. Fixed UUIDs make the seeded data addressable from tests.
