@@ -17,6 +17,8 @@ import (
 
 	containerPkg "github.com/base-go/backend/container"
 	"github.com/base-go/backend/pkg/config"
+	"github.com/base-go/backend/pkg/database"
+	"github.com/base-go/backend/pkg/seed"
 	"github.com/base-go/backend/pkg/server"
 )
 
@@ -74,6 +76,7 @@ func main() {
 
 func Start(
 	svr server.Server,
+	db database.Database,
 ) {
 
 	cfg := config.GetConfig()
@@ -98,6 +101,15 @@ func Start(
 		log.Fatalf("Error running migration: %s", err)
 	}
 	log.Println("Database migration succeeded")
+
+	seedFiles, err := seed.Files("migrations/seeders", environtment)
+	if err != nil {
+		log.Fatalf("Error collecting seed files: %s", err)
+	}
+	if err := seed.Run(db.GetDB(), seedFiles); err != nil {
+		log.Fatalf("Error running seeders: %s", err)
+	}
+	log.Printf("Database seeding succeeded (%d files)", len(seedFiles))
 
 	log.Println("Starting server...")
 	if err := svr.Start(); err != nil {
