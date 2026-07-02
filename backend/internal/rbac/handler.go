@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
+	"github.com/base-go/backend/pkg/middleware"
 	"github.com/base-go/backend/pkg/response"
 )
 
@@ -330,7 +331,7 @@ func (h Handler) GetModuleAccessByRole(w http.ResponseWriter, r *http.Request) {
 // --- Permission Checking Handlers ---
 
 func (h Handler) CheckPermission(w http.ResponseWriter, r *http.Request) {
-	userCtx, ok := r.Context().Value("user_context").(response.UserContext)
+	userCtx, ok := middleware.GetUserContext(r.Context())
 	if !ok {
 		response.ResponseError(w, http.StatusUnauthorized, "Unauthorized")
 		return
@@ -358,7 +359,7 @@ func (h Handler) CheckPermission(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) CheckModuleAccess(w http.ResponseWriter, r *http.Request) {
-	userCtx, ok := r.Context().Value("user_context").(response.UserContext)
+	userCtx, ok := middleware.GetUserContext(r.Context())
 	if !ok {
 		response.ResponseError(w, http.StatusUnauthorized, "Unauthorized")
 		return

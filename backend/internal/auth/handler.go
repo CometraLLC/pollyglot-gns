@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
+	"github.com/base-go/backend/pkg/middleware"
 	"github.com/base-go/backend/pkg/response"
 )
 
@@ -86,7 +87,7 @@ func (h Handler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	// Get user context
-	userCtx, ok := r.Context().Value("user_context").(response.UserContext)
+	userCtx, ok := middleware.GetUserContext(r.Context())
 	if !ok {
 		response.ResponseError(w, http.StatusUnauthorized, "Unauthorized")
 		return
@@ -109,7 +110,7 @@ func (h Handler) Logout(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	// Get user context
-	userCtx, ok := r.Context().Value("user_context").(response.UserContext)
+	userCtx, ok := middleware.GetUserContext(r.Context())
 	if !ok {
 		response.ResponseError(w, http.StatusUnauthorized, "Unauthorized")
 		return
@@ -132,7 +133,7 @@ func (h Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	// Get user context
-	userCtx, ok := r.Context().Value("user_context").(response.UserContext)
+	userCtx, ok := middleware.GetUserContext(r.Context())
 	if !ok {
 		response.ResponseError(w, http.StatusUnauthorized, "Unauthorized")
 		return
@@ -161,7 +162,7 @@ func (h Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	// Get user context
-	userCtx, ok := r.Context().Value("user_context").(response.UserContext)
+	userCtx, ok := middleware.GetUserContext(r.Context())
 	if !ok {
 		response.ResponseError(w, http.StatusUnauthorized, "Unauthorized")
 		return
