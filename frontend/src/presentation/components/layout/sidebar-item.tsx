@@ -6,7 +6,6 @@ import { ChevronDown, LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/src/lib/utils'
 import { usePermission } from '@/src/application/hooks/use-permission'
-import { useDemoRoute } from '@/src/lib/demo/use-demo-route'
 
 export interface SidebarMenuItem {
     label: string
@@ -40,7 +39,6 @@ function hasActiveChild(item: SidebarMenuItem, pathname: string): boolean {
 export function SidebarItem({ item, level = 0, onNavigate }: SidebarItemProps) {
     const pathname = usePathname()
     const { hasPermission, hasRole, hasAnyRole, isAdmin } = usePermission()
-    const { getRoute } = useDemoRoute()
 
     const checkAccess = (menuItem: SidebarMenuItem): boolean => {
         // Check admin requirement
@@ -79,7 +77,7 @@ export function SidebarItem({ item, level = 0, onNavigate }: SidebarItemProps) {
         return null
     }
 
-    const actualHref = item.href ? getRoute(item.href) : undefined
+    const actualHref = item.href
     const isActive = actualHref === pathname
     const Icon = item.icon
 

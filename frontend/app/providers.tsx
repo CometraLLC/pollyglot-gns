@@ -47,14 +47,16 @@ export function Providers({ children }: { children: ReactNode }) {
                     {/* Animated Logo */}
                     <div className="relative">
                         <div className="absolute inset-0 animate-ping opacity-10">
-                            <img src="/gns.png" alt="GNS" className="h-16 w-16 rounded dark:invert" />
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/pollyglot.svg" alt="" className="h-16 w-16" />
                         </div>
-                        <img src="/gns.png" alt="GNS" className="h-16 w-16 rounded animate-pulse dark:invert" />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/pollyglot.svg" alt="Pollyglot" className="h-16 w-16 animate-pulse" />
                     </div>
 
                     {/* Brand Name */}
                     <div className="flex flex-col items-center gap-2">
-                        <span className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>GNS</span>
+                        <span className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>Pollyglot</span>
                         <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Loading your experience...</span>
                     </div>
 

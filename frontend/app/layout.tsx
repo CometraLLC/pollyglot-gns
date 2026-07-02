@@ -10,8 +10,9 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "GNS - (Go, NextJS, ShadCn)",
-  description: "Base project build with Go, NextJS, ShadCn",
+  title: "Pollyglot — Learn languages",
+  description:
+    "Language learning with spaced-repetition flashcards, translation, and conversation practice.",
 };
 
 export default function RootLayout({
