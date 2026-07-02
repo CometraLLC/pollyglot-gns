@@ -32,6 +32,14 @@ run:
 build:
 	go build -o $(BINARY_NAME) ./cmd/api/main.go
 
+### Run all tests with race detector
+test:
+	go test ./... -race -count=1
+
+### Run tests verbosely for one package, e.g. make test-pkg pkg=./pkg/srs
+test-pkg:
+	go test $(pkg) -race -count=1 -v
+
 ### create migration file
 create-migration:
 	@if [ -z "$(name)" ]; then \
@@ -83,6 +91,8 @@ help:
 	@echo "  down                     - Stop production containers"
 	@echo "  run                      - Run app locally"
 	@echo "  build                    - Build binary"
+	@echo "  test                     - Run all tests with race detector"
+	@echo "  test-pkg pkg=./pkg/x     - Run one package's tests verbosely"
 	@echo "  create-migration name=X  - Create migration file"
 	@echo "  dev                      - Run development containers"
 	@echo "  dev-down                 - Stop development containers"
@@ -93,4 +103,4 @@ help:
 	@echo "  migrate-force version=X  - Force migration to specific version"
 	@echo "  db-shell                 - Access PostgreSQL shell"
 
-.PHONY: init up down run build create-migration migrate-up migrate-down migrate-force db-shell dev dev-down dev-clean help
+.PHONY: init up down run build test test-pkg create-migration migrate-up migrate-down migrate-force db-shell dev dev-down dev-clean help
