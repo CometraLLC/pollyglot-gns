@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/base-go/backend/internal/auth"
+	"github.com/base-go/backend/internal/decks"
 	"github.com/base-go/backend/internal/rbac"
 	"github.com/base-go/backend/pkg/middleware"
 	"github.com/base-go/backend/pkg/response"
@@ -21,6 +22,7 @@ func SetupRoutes(
 	authHandler auth.Handler,
 	rbacHandler rbac.Handler,
 	rbacRepo rbac.Repository,
+	decksHandler decks.Handler,
 ) *chi.Mux {
 	mux := chi.NewRouter()
 
@@ -125,6 +127,12 @@ func SetupRoutes(
 				r.Post("/check-permission", rbacHandler.CheckPermission)
 				r.Post("/check-module-access", rbacHandler.CheckModuleAccess)
 			})
+		})
+
+		// Decks & cards routes (protected, per-user data)
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.JWTAuthMiddleware)
+			decks.RegisterRoutes(r, decksHandler)
 		})
 
 		// User management routes (protected - Admin only)

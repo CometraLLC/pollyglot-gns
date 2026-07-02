@@ -5,6 +5,7 @@ import (
 	"go.uber.org/dig"
 
 	"github.com/base-go/backend/internal/auth"
+	"github.com/base-go/backend/internal/decks"
 	"github.com/base-go/backend/internal/rbac"
 	"github.com/base-go/backend/pkg/cache"
 	"github.com/base-go/backend/pkg/database"
@@ -50,6 +51,19 @@ func New() (*dig.Container, error) {
 	}
 
 	if err := container.Provide(rbac.NewHandler); err != nil {
+		return nil, err
+	}
+
+	// decks module
+	if err := container.Provide(decks.NewRepository); err != nil {
+		return nil, err
+	}
+
+	if err := container.Provide(decks.NewService); err != nil {
+		return nil, err
+	}
+
+	if err := container.Provide(decks.NewHandler); err != nil {
 		return nil, err
 	}
 

@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/base-go/backend/internal/shared/models"
+	"github.com/base-go/backend/pkg/database"
 )
 
 // DeckWithCount pairs a deck with its (non-deleted) card count for list views
@@ -34,8 +35,8 @@ type repository struct {
 	db *gorm.DB
 }
 
-func NewRepository(db *gorm.DB) Repository {
-	return &repository{db: db}
+func NewRepository(db database.Database) Repository {
+	return &repository{db: db.GetDB()}
 }
 
 func (r *repository) CreateDeck(ctx context.Context, deck *models.Deck) error {
