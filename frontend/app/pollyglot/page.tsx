@@ -11,7 +11,7 @@ const tiles = [
 		description: 'Create decks and fill them with the words you are learning.',
 		href: '/pollyglot/decks',
 		icon: Layers,
-		available: false,
+		available: true,
 	},
 	{
 		title: 'Study',
