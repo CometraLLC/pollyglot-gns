@@ -1,5 +1,5 @@
-import { LandingPage } from '@/src/presentation/components/pages/landing-page'
+import { PollyglotLanding } from '@/src/presentation/components/pages/pollyglot-landing'
 
 export default function Page() {
-  return <LandingPage />
+  return <PollyglotLanding />
 }
