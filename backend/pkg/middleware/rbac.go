@@ -13,7 +13,7 @@ import (
 // This should be used after JWTAuthMiddleware
 func RequireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userCtx, ok := r.Context().Value("user_context").(response.UserContext)
+		userCtx, ok := GetUserContext(r.Context())
 		if !ok || userCtx.UserID == "" {
 			response.ResponseError(w, http.StatusUnauthorized, "Unauthorized")
 			return
@@ -27,7 +27,7 @@ func RequireAuth(next http.Handler) http.Handler {
 func RequireRole(roles ...string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			userCtx, ok := r.Context().Value("user_context").(response.UserContext)
+			userCtx, ok := GetUserContext(r.Context())
 			if !ok {
 				response.ResponseError(w, http.StatusUnauthorized, "Unauthorized")
 				return
@@ -62,7 +62,7 @@ type RBACChecker interface {
 func RequirePermission(checker RBACChecker, permission string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			userCtx, ok := r.Context().Value("user_context").(response.UserContext)
+			userCtx, ok := GetUserContext(r.Context())
 			if !ok {
 				response.ResponseError(w, http.StatusUnauthorized, "Unauthorized")
 				return
@@ -94,7 +94,7 @@ func RequirePermission(checker RBACChecker, permission string) func(http.Handler
 func RequireModuleAccess(checker RBACChecker, module string, action string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			userCtx, ok := r.Context().Value("user_context").(response.UserContext)
+			userCtx, ok := GetUserContext(r.Context())
 			if !ok {
 				response.ResponseError(w, http.StatusUnauthorized, "Unauthorized")
 				return
