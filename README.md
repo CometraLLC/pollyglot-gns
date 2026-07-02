@@ -72,6 +72,21 @@ make dev     # docker stack (API :8080) + Next dev server (:3000)
 make dev-down
 ```
 
+### Seeded dev account
+
+In development the API seeds an account on startup so you can sign in
+without registering:
+
+| Email | Password |
+| ----- | -------- |
+| `demo@pollyglot.dev` | `Password123!` |
+
+It comes with a "Japanese Basics" starter deck (6 cards, all due) so decks
+and study have content immediately. Seed files live in
+`backend/migrations/seeders/` (every environment) and
+`backend/migrations/seeders/dev/` (development only); all seeds are
+idempotent.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
