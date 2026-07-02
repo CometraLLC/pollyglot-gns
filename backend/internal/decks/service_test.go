@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"sort"
 	"testing"
 	"time"
 
@@ -18,8 +19,11 @@ import (
 // --- fake repository ---
 
 type fakeRepo struct {
-	decks map[uuid.UUID]*models.Deck
-	cards map[uuid.UUID]*models.Card
+	decks   map[uuid.UUID]*models.Deck
+	cards   map[uuid.UUID]*models.Card
+	reviews []models.Review
+	// lastQueueLimit records the limit passed to GetDueCards
+	lastQueueLimit int
 	// forceErr, when set, is returned by every method to drive 500 paths
 	forceErr error
 }
@@ -151,6 +155,33 @@ func (f *fakeRepo) SoftDeleteCard(_ context.Context, id uuid.UUID) error {
 	}
 	now := time.Now()
 	f.cards[id].DeletedAt = &now
+	return nil
+}
+
+func (f *fakeRepo) GetDueCards(_ context.Context, deckID uuid.UUID, before time.Time, limit int) ([]models.Card, error) {
+	if f.forceErr != nil {
+		return nil, f.forceErr
+	}
+	f.lastQueueLimit = limit
+	var due []models.Card
+	for _, c := range f.cards {
+		if c.DeckID == deckID && c.DeletedAt == nil && !c.DueAt.After(before) {
+			due = append(due, *c)
+		}
+	}
+	sort.Slice(due, func(i, j int) bool { return due[i].DueAt.Before(due[j].DueAt) })
+	if len(due) > limit {
+		due = due[:limit]
+	}
+	return due, nil
+}
+
+func (f *fakeRepo) CreateReview(_ context.Context, review *models.Review) error {
+	if f.forceErr != nil {
+		return f.forceErr
+	}
+	review.ID = uuid.New()
+	f.reviews = append(f.reviews, *review)
 	return nil
 }
 

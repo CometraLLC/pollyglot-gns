@@ -29,6 +29,9 @@ type Service interface {
 	ListCards(ctx context.Context, userID, deckID uuid.UUID) ([]CardResponse, int, error)
 	UpdateCard(ctx context.Context, userID, cardID uuid.UUID, req UpdateCardRequest) (*CardResponse, int, error)
 	DeleteCard(ctx context.Context, userID, cardID uuid.UUID) (int, error)
+
+	ReviewCard(ctx context.Context, userID, cardID uuid.UUID, req ReviewCardRequest) (*CardResponse, int, error)
+	GetStudyQueue(ctx context.Context, userID, deckID uuid.UUID, limit int) ([]CardResponse, int, error)
 }
 
 type service struct {

@@ -3,6 +3,7 @@ package decks
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -33,12 +34,14 @@ func RegisterRoutes(r chi.Router, h Handler) {
 
 			r.Get("/cards", h.ListCards)
 			r.Post("/cards", h.CreateCard)
+			r.Get("/queue", h.GetStudyQueue)
 		})
 	})
 
 	r.Route("/cards", func(r chi.Router) {
 		r.Put("/{id}", h.UpdateCard)
 		r.Delete("/{id}", h.DeleteCard)
+		r.Post("/{id}/review", h.ReviewCard)
 	})
 }
 
@@ -224,6 +227,48 @@ func (h Handler) UpdateCard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp, status, err := h.service.UpdateCard(r.Context(), uid, cardID, req)
+	if err != nil {
+		response.ResponseError(w, status, err.Error())
+		return
+	}
+	response.ResponseJSON(w, status, resp)
+}
+
+func (h Handler) ReviewCard(w http.ResponseWriter, r *http.Request) {
+	uid, ok := userID(w, r)
+	if !ok {
+		return
+	}
+	cardID, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+	var req ReviewCardRequest
+	if !decode(w, r, &req) {
+		return
+	}
+
+	resp, status, err := h.service.ReviewCard(r.Context(), uid, cardID, req)
+	if err != nil {
+		response.ResponseError(w, status, err.Error())
+		return
+	}
+	response.ResponseJSON(w, status, resp)
+}
+
+func (h Handler) GetStudyQueue(w http.ResponseWriter, r *http.Request) {
+	uid, ok := userID(w, r)
+	if !ok {
+		return
+	}
+	deckID, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+	// invalid or absent limits become 0; the service applies the default
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+
+	resp, status, err := h.service.GetStudyQueue(r.Context(), uid, deckID, limit)
 	if err != nil {
 		response.ResponseError(w, status, err.Error())
 		return

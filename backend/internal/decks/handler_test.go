@@ -29,6 +29,8 @@ type fakeService struct {
 	gotUserID uuid.UUID
 	gotDeckID uuid.UUID
 	gotCardID uuid.UUID
+	gotRating int
+	gotLimit  int
 }
 
 func (f *fakeService) CreateDeck(_ context.Context, userID uuid.UUID, _ CreateDeckRequest) (*DeckResponse, int, error) {
@@ -74,6 +76,20 @@ func (f *fakeService) UpdateCard(_ context.Context, userID, cardID uuid.UUID, _ 
 func (f *fakeService) DeleteCard(_ context.Context, userID, cardID uuid.UUID) (int, error) {
 	f.gotUserID, f.gotCardID = userID, cardID
 	return f.status, f.err
+}
+
+func (f *fakeService) ReviewCard(_ context.Context, userID, cardID uuid.UUID, req ReviewCardRequest) (*CardResponse, int, error) {
+	f.gotUserID, f.gotCardID = userID, cardID
+	if req.Rating != nil {
+		f.gotRating = *req.Rating
+	}
+	return f.cardResp, f.status, f.err
+}
+
+func (f *fakeService) GetStudyQueue(_ context.Context, userID, deckID uuid.UUID, limit int) ([]CardResponse, int, error) {
+	f.gotUserID, f.gotDeckID = userID, deckID
+	f.gotLimit = limit
+	return f.cardsResp, f.status, f.err
 }
 
 // testRouter mounts the handler exactly as pkg/router does, with a stub
@@ -230,4 +246,46 @@ func TestHandlerCardRoutes(t *testing.T) {
 
 	rec = doJSON(t, mux, http.MethodDelete, "/v1/cards/"+cardID.String(), nil)
 	assert.Equal(t, http.StatusOK, rec.Code)
+}
+
+func TestHandlerReviewCard(t *testing.T) {
+	user, _ := authedUser()
+	cardID := uuid.New()
+	svc := &fakeService{
+		cardResp: &CardResponse{ID: cardID, Repetitions: 1, IntervalDays: 1},
+		status:   http.StatusOK,
+	}
+	mux := testRouter(svc, user)
+
+	rating := 4
+	rec := doJSON(t, mux, http.MethodPost, "/v1/cards/"+cardID.String()+"/review", ReviewCardRequest{Rating: &rating})
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, cardID, svc.gotCardID)
+	assert.Equal(t, 4, svc.gotRating)
+
+	var body CardResponse
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &body))
+	assert.Equal(t, 1, body.Repetitions)
+}
+
+func TestHandlerStudyQueue(t *testing.T) {
+	user, _ := authedUser()
+	deckID := uuid.New()
+	svc := &fakeService{
+		cardsResp: []CardResponse{{Front: "ねこ"}},
+		status:    http.StatusOK,
+	}
+	mux := testRouter(svc, user)
+
+	rec := doJSON(t, mux, http.MethodGet, "/v1/decks/"+deckID.String()+"/queue?limit=5", nil)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, deckID, svc.gotDeckID)
+	assert.Equal(t, 5, svc.gotLimit)
+
+	// non-numeric limit falls back to 0 (service applies the default)
+	rec = doJSON(t, mux, http.MethodGet, "/v1/decks/"+deckID.String()+"/queue?limit=abc", nil)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, 0, svc.gotLimit)
 }

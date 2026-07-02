@@ -30,6 +30,12 @@ type UpdateCardRequest struct {
 	Back  string `json:"back" validate:"required,max=2000"`
 }
 
+// ReviewCardRequest carries the study rating. Rating is a pointer so
+// that 0 (Forgot) survives the required check.
+type ReviewCardRequest struct {
+	Rating *int `json:"rating" validate:"required,gte=0,lte=4"`
+}
+
 // --- Responses ---
 
 type DeckResponse struct {
