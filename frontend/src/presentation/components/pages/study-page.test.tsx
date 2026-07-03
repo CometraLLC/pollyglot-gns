@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mockDeck as deck, renderWithQuery } from '@/src/lib/test-utils'
+import { DeckFactory, renderWithQuery } from '@/src/lib/test-utils'
 import { StudyPage } from './study-page'
 
 vi.mock('@/src/domain/services/decks.service', () => ({
@@ -21,7 +21,10 @@ beforeEach(() => {
 
 describe('StudyPage (deck picker)', () => {
 	it('links each deck to its study session', async () => {
-		mocked.listDecks.mockResolvedValue([deck(), deck({ id: 'deck-2', name: 'Spanish Verbs' })])
+		mocked.listDecks.mockResolvedValue([
+			DeckFactory.build({ id: 'deck-1' }),
+			DeckFactory.build({ id: 'deck-2', name: 'Spanish Verbs' }),
+		])
 
 		renderPage()
 

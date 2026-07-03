@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
+	"github.com/base-go/backend/internal/shared/factory"
 	"github.com/base-go/backend/internal/shared/models"
 )
 
@@ -188,34 +189,15 @@ func (f *fakeRepo) CreateReview(_ context.Context, review *models.Review) error 
 // --- helpers ---
 
 func seedDeck(repo *fakeRepo, userID uuid.UUID) *models.Deck {
-	deck := &models.Deck{
-		ID:         uuid.New(),
-		UserID:     userID,
-		Name:       "Japanese Basics",
-		SourceLang: "Japanese",
-		TargetLang: "English",
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
-	}
-	repo.decks[deck.ID] = deck
-	return deck
+	deck := factory.Deck().WithUserID(userID).Build()
+	repo.decks[deck.ID] = &deck
+	return &deck
 }
 
 func seedCard(repo *fakeRepo, deckID uuid.UUID) *models.Card {
-	card := &models.Card{
-		ID:           uuid.New(),
-		DeckID:       deckID,
-		Front:        "こんにちは",
-		Back:         "hello",
-		EaseFactor:   2.5,
-		IntervalDays: 0,
-		Repetitions:  0,
-		DueAt:        time.Now(),
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
-	}
-	repo.cards[card.ID] = card
-	return card
+	card := factory.Card().WithDeckID(deckID).Build()
+	repo.cards[card.ID] = &card
+	return &card
 }
 
 // --- deck tests ---

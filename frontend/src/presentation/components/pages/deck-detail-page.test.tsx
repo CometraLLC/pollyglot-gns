@@ -1,8 +1,8 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Card, Deck } from '@/src/domain/services/decks.service'
+import type { Card } from '@/src/domain/services/decks.service'
+import { CardFactory, DeckFactory, renderWithQuery } from '@/src/lib/test-utils'
 import { DeckDetailPage } from './deck-detail-page'
 
 vi.mock('@/src/domain/services/decks.service', () => ({
@@ -19,42 +19,12 @@ import { decksService } from '@/src/domain/services/decks.service'
 
 const mocked = vi.mocked(decksService)
 
-const deck: Deck = {
-	id: 'deck-1',
-	name: 'Japanese Basics',
-	source_lang: 'Japanese',
-	target_lang: 'English',
-	card_count: 2,
-	created_at: '2026-07-01T00:00:00Z',
-	updated_at: '2026-07-01T00:00:00Z',
-}
+const deck = DeckFactory.build({ id: 'deck-1', card_count: 2 })
 
-function card(overrides: Partial<Card> = {}): Card {
-	return {
-		id: 'card-1',
-		deck_id: 'deck-1',
-		front: 'こんにちは',
-		back: 'hello',
-		ease_factor: 2.5,
-		interval_days: 0,
-		repetitions: 0,
-		due_at: '2026-07-01T00:00:00Z',
-		created_at: '2026-07-01T00:00:00Z',
-		updated_at: '2026-07-01T00:00:00Z',
-		...overrides,
-	}
-}
+const card = (overrides: Partial<Card> = {}): Card =>
+	CardFactory.build({ id: 'card-1', deck_id: 'deck-1', ...overrides })
 
-function renderPage() {
-	const client = new QueryClient({
-		defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
-	})
-	return render(
-		<QueryClientProvider client={client}>
-			<DeckDetailPage deckId="deck-1" />
-		</QueryClientProvider>
-	)
-}
+const renderPage = () => renderWithQuery(<DeckDetailPage deckId="deck-1" />)
 
 beforeEach(() => {
 	vi.clearAllMocks()

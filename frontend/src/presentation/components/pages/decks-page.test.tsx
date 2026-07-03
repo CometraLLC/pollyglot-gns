@@ -1,8 +1,8 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Deck } from '@/src/domain/services/decks.service'
+import { DeckFactory, renderWithQuery } from '@/src/lib/test-utils'
 import { DecksPage } from './decks-page'
 
 vi.mock('@/src/domain/services/decks.service', () => ({
@@ -18,29 +18,10 @@ import { decksService } from '@/src/domain/services/decks.service'
 
 const mocked = vi.mocked(decksService)
 
-function deck(overrides: Partial<Deck> = {}): Deck {
-	return {
-		id: 'deck-1',
-		name: 'Japanese Basics',
-		source_lang: 'Japanese',
-		target_lang: 'English',
-		card_count: 3,
-		created_at: '2026-07-01T00:00:00Z',
-		updated_at: '2026-07-01T00:00:00Z',
-		...overrides,
-	}
-}
+const deck = (overrides: Partial<Deck> = {}): Deck =>
+	DeckFactory.build({ id: 'deck-1', name: 'Japanese Basics', ...overrides })
 
-function renderPage() {
-	const client = new QueryClient({
-		defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
-	})
-	return render(
-		<QueryClientProvider client={client}>
-			<DecksPage />
-		</QueryClientProvider>
-	)
-}
+const renderPage = () => renderWithQuery(<DecksPage />)
 
 beforeEach(() => {
 	vi.clearAllMocks()

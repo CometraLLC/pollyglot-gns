@@ -1,7 +1,7 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mockCard, mockDeck, renderWithQuery } from '@/src/lib/test-utils'
+import { CardFactory, DeckFactory, renderWithQuery } from '@/src/lib/test-utils'
 import { StudySessionPage } from './study-session-page'
 
 vi.mock('@/src/domain/services/decks.service', () => ({
@@ -16,9 +16,9 @@ import { decksService } from '@/src/domain/services/decks.service'
 
 const mocked = vi.mocked(decksService)
 
-const deck = mockDeck({ card_count: 2 })
+const deck = DeckFactory.build({ id: 'deck-1', card_count: 2 })
 
-const card = mockCard
+const card = CardFactory.build
 
 const twoCards = [card(), card({ id: 'card-2', front: 'ねこ', back: 'cat' })]
 

@@ -224,3 +224,26 @@ six-card starter deck.
 running on boot (not as migrations) keeps reference/dev data out of the
 schema history; the dev/ split makes it impossible to ship the demo account
 to production. Fixed UUIDs make the seeded data addressable from tests.
+
+## D-013: Factory pattern for all test data
+
+**Date:** 2026-07-02 (issue Pollyglot#21)
+
+**Context:** Marc asked for factory-pattern test data (`UserFactory`,
+`DeckFactory`, `CardFactory`) with seeded users/values. Tests were building
+models with inline literals duplicated per file.
+
+**Decision:** Go: `internal/shared/factory` with chainable builders
+(`factory.Card().WithDeckID(id).WithSRS(1.9, 12, 4).Build()`) and a
+`factory.Seeded` struct pinning the dev-seed UUIDs/credentials (a test
+asserts they stay in sync with the SQL). TS: `UserFactory` / `DeckFactory` /
+`CardFactory` in `src/lib/test-utils.tsx` with `build`/`buildList` and
+sequence-numbered defaults, plus `SeededUser`. All suites refactored; new
+tests must use factories.
+
+**Why:** One place defines what a "normal" user/deck/card looks like, so
+schema changes touch one file instead of every test; sequence-numbered
+defaults prevent accidental cross-test identity collisions; pinning the
+seeded fixtures in code keeps manual-testing credentials and automated tests
+from drifting apart. Conventions recorded in CLAUDE.md so future sessions
+follow them.
