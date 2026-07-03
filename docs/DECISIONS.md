@@ -268,3 +268,25 @@ honest end-to-end (demo account → starter deck → translate → save back as 
 card) while keeping tests hermetic. Distinguishing 422 (no data) from 502
 (provider broken) means the future ML/LLM provider drops in without any
 handler or UI changes.
+
+## D-015: Conversation tutor is the scripted Socratic persona; exchanges are atomic
+
+**Date:** 2026-07-02 (issue Pollyglot#15)
+
+**Context:** The original repo shipped a Socratic-tutor prompt ("never give
+answers, always end with a question"). No LLM is available in this
+environment, and a chat that half-persists on failure corrupts history.
+
+**Decision:** `TutorProvider` interface with a deterministic
+`SocraticTutor`: quotes the learner's words, cycles five distinct probes by
+turn count, always ends with a question (tests enforce all three
+properties). `POST /conversations/{id}/messages` asks the provider *before*
+persisting anything, then stores the user and tutor messages together and
+returns the full exchange; the UI appends the exchange into the query cache
+instead of refetching.
+
+**Why:** The scripted persona preserves the product's pedagogy honestly
+without faking an AI, and gives an LLM provider a behavioral contract to
+meet (the tests document it). Provider-before-persist means a provider
+outage is a clean 502 with no orphaned user message to dedupe later;
+cache-append keeps the chat from flickering on every turn.

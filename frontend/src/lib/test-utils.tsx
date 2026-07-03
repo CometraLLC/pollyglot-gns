@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import type { Card, Deck } from '@/src/domain/services/decks.service'
+import type { Conversation, Message } from '@/src/domain/services/conversation.service'
 import type { User } from '@/src/domain/services/auth.service'
 
 /**
@@ -71,4 +72,19 @@ export const CardFactory = createFactory<Card>((i) => ({
 	due_at: '2026-07-01T00:00:00Z',
 	created_at: '2026-07-01T00:00:00Z',
 	updated_at: '2026-07-01T00:00:00Z',
+}))
+
+export const ConversationFactory = createFactory<Conversation>((i) => ({
+	id: `conv-${i}`,
+	title: 'Practice Japanese',
+	language: 'Japanese',
+	created_at: '2026-07-01T00:00:00Z',
+	updated_at: '2026-07-01T00:00:00Z',
+}))
+
+export const MessageFactory = createFactory<Message>((i) => ({
+	id: `msg-${i}`,
+	role: 'tutor',
+	content: 'What do you already know?',
+	created_at: '2026-07-01T00:00:00Z',
 }))

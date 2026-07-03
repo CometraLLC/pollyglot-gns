@@ -32,7 +32,7 @@ const tiles = [
 		description: 'Practice with a tutor that asks before it answers.',
 		href: '/pollyglot/conversation',
 		icon: MessagesSquare,
-		available: false,
+		available: true,
 	},
 	{
 		title: 'Progress',
