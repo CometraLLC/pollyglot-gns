@@ -31,6 +31,7 @@ function MessageBubble({ message, language }: { message: Message; language: stri
 				<button
 					type='button'
 					aria-label='Play message'
+					title='Play message — uses the ElevenLabs voice when configured, otherwise your browser speech'
 					onClick={() => void speakWithFallback(message.content, language)}
 					className='neu-btn rounded-full p-1.5 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500'
 				>
