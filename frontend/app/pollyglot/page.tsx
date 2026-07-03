@@ -39,7 +39,7 @@ const tiles = [
 		description: 'Streaks, reviews per day, and every word you have met.',
 		href: '/pollyglot/stats',
 		icon: TrendingUp,
-		available: false,
+		available: true,
 	},
 ]
 

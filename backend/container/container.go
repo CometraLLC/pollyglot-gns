@@ -8,6 +8,7 @@ import (
 	"github.com/base-go/backend/internal/conversation"
 	"github.com/base-go/backend/internal/decks"
 	"github.com/base-go/backend/internal/rbac"
+	"github.com/base-go/backend/internal/stats"
 	"github.com/base-go/backend/internal/translate"
 	"github.com/base-go/backend/pkg/cache"
 	"github.com/base-go/backend/pkg/database"
@@ -98,6 +99,19 @@ func New() (*dig.Container, error) {
 	}
 
 	if err := container.Provide(conversation.NewHandler); err != nil {
+		return nil, err
+	}
+
+	// stats module
+	if err := container.Provide(stats.NewRepository); err != nil {
+		return nil, err
+	}
+
+	if err := container.Provide(stats.NewService); err != nil {
+		return nil, err
+	}
+
+	if err := container.Provide(stats.NewHandler); err != nil {
 		return nil, err
 	}
 
