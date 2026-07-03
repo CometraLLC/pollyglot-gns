@@ -8,6 +8,7 @@ import (
 	"github.com/base-go/backend/internal/conversation"
 	"github.com/base-go/backend/internal/decks"
 	"github.com/base-go/backend/internal/rbac"
+	"github.com/base-go/backend/internal/speech"
 	"github.com/base-go/backend/internal/stats"
 	"github.com/base-go/backend/internal/translate"
 	"github.com/base-go/backend/pkg/middleware"
@@ -29,6 +30,7 @@ func SetupRoutes(
 	translateHandler translate.Handler,
 	conversationHandler conversation.Handler,
 	statsHandler stats.Handler,
+	speechHandler speech.Handler,
 ) *chi.Mux {
 	mux := chi.NewRouter()
 
@@ -142,6 +144,7 @@ func SetupRoutes(
 			translate.RegisterRoutes(r, translateHandler)
 			conversation.RegisterRoutes(r, conversationHandler)
 			stats.RegisterRoutes(r, statsHandler)
+			speech.RegisterRoutes(r, speechHandler)
 		})
 
 		// User management routes (protected - Admin only)
