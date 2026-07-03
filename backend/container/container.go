@@ -5,6 +5,7 @@ import (
 	"go.uber.org/dig"
 
 	"github.com/base-go/backend/internal/auth"
+	"github.com/base-go/backend/internal/conversation"
 	"github.com/base-go/backend/internal/decks"
 	"github.com/base-go/backend/internal/rbac"
 	"github.com/base-go/backend/internal/translate"
@@ -78,6 +79,25 @@ func New() (*dig.Container, error) {
 	}
 
 	if err := container.Provide(translate.NewHandler); err != nil {
+		return nil, err
+	}
+
+	// conversation module
+	if err := container.Provide(func() conversation.TutorProvider {
+		return conversation.NewSocraticTutor()
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := container.Provide(conversation.NewRepository); err != nil {
+		return nil, err
+	}
+
+	if err := container.Provide(conversation.NewService); err != nil {
+		return nil, err
+	}
+
+	if err := container.Provide(conversation.NewHandler); err != nil {
 		return nil, err
 	}
 
