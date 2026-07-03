@@ -2,14 +2,14 @@ version: "3.9"
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: gns-postgres
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data-18:/var/lib/postgresql
     networks:
       - proxy-tier
     restart: unless-stopped
@@ -20,7 +20,7 @@ services:
       retries: 5
 
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     container_name: gns-redis
     volumes:
       - redis-data:/data
@@ -59,6 +59,7 @@ volumes:
   nginx_vhost:
   nginx_html:
   postgres-data:
+  postgres-data-18:
   redis-data:
 
 networks:

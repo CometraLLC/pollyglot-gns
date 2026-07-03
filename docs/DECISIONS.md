@@ -365,3 +365,27 @@ flipped light shadow pair reads as dirt on dark surfaces); scoping to the
 product surface keeps the diff reviewable; and empty states as recessed
 wells vs. content as raised cards gives the soft-UI hierarchy an actual
 meaning instead of decoration.
+
+## D-019: Runtime upgrades are staged, tagged, and data-backed
+
+**Date:** 2026-07-02 (issue Pollyglot#30, requested by Marc)
+
+**Context:** Go 1.24 passed EOL in February 2026; Postgres 16, Redis 7,
+and Next 16.1 all had newer stables. Marc required a backup at every stage
+so any single upgrade can be reverted.
+
+**Decision:** One branch, one atomic commit per component, each verified
+live before the next, with three layers of rollback: (1) a git tag before
+every stage (`pre-upgrade-{baseline,go,redis,postgres,nextjs}`); (2)
+`pg_dump` SQL + Redis RDB snapshots in gitignored `backups/`; (3) Postgres
+migrated by dump→restore into a **new** volume (`postgres-data-18`,
+mounted at `/var/lib/postgresql` per the PG18 image) while the PG16
+volume stays untouched — reverting the compose file boots the old data
+unchanged. Restore was verified by per-table row-count comparison
+(0 errors, identical counts). Landed: Go 1.26.4, Redis 8.8.0,
+Postgres 18.4, Next.js 16.2.10.
+
+**Why:** Tags make code rollback one command; the parallel Postgres
+volume makes data rollback instant rather than a restore drill; per-stage
+verification means a failure pins to one component instead of one big-bang
+upgrade to bisect.
