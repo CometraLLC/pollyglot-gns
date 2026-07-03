@@ -78,3 +78,8 @@ Dev sign-in without registering: `demo@pollyglot.dev` / `Password123!`
   are `nav.*` keys resolved in `SidebarItem`; a locale-parity test
   (`src/lib/locales.test.ts`) fails if EN/ID key sets drift — add every new
   key to both files. Page copy is English for now (see D-017).
+- **Styling is neumorphic** (D-018): new product UI uses `neu-card` /
+  `neu-card-sm` (raised), `neu-inset` (recessed wells/empty states),
+  `neu-btn` (pill buttons), `neu-interactive` (hover lift, press inset)
+  from globals.css — not `border bg-card shadow-*`. Text keeps standard
+  foreground tokens; emerald remains the accent.

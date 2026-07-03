@@ -18,7 +18,7 @@ function StatTile({
 	suffix?: string
 }) {
 	return (
-		<div className='rounded-xl border bg-card p-6' aria-label={`${label}: ${value}`}>
+		<div className='neu-card p-6' aria-label={`${label}: ${value}`}>
 			<Icon className='mb-3 h-5 w-5 text-emerald-600 dark:text-emerald-400' aria-hidden />
 			<p className='text-2xl font-bold tabular-nums'>
 				{value}
@@ -60,14 +60,14 @@ export function StatsPage() {
 					</div>
 
 					{data.total_reviews === 0 ? (
-						<div className='rounded-xl border border-dashed p-12 text-center'>
+						<div className='neu-inset rounded-xl p-12 text-center'>
 							<p className='mb-1 font-medium'>No reviews yet</p>
 							<p className='text-sm text-muted-foreground'>
 								Study a deck and this page starts filling in.
 							</p>
 						</div>
 					) : (
-						<div className='rounded-xl border bg-card p-6'>
+						<div className='neu-card p-6'>
 							<h2 className='mb-4 text-sm font-semibold'>Reviews per day — last 30 days</h2>
 							{/* Chart color validated for both surfaces (dataviz six checks):
 							    #059669 on light, #0ea371 on dark, inherited via currentColor. */}

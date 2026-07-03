@@ -338,3 +338,30 @@ switches languages correctly; the parity test turns missing translations
 into CI failures instead of raw keys in production; and deferring the
 page sweep honestly (documented here) beats a rushed half-translation
 that would still fail the "all pages" bar.
+
+## D-018: Neumorphic surface system with per-theme shadow pairs
+
+**Date:** 2026-07-02 (issue Pollyglot#27, requested by Marc)
+
+**Context:** Marc asked for a neumorphic style. The original Pollyglot repo
+already used soft UI (`#e0e5ec` surfaces, dual-shadow `.neumorphic-shadow`
+classes), so this restores the product's original design language.
+Neumorphism's known risk is contrast collapse (low-contrast surfaces,
+borderless controls).
+
+**Decision:** Four utility classes in globals.css — `neu-card`,
+`neu-card-sm`, `neu-inset`, `neu-btn` (+ `neu-interactive` hover/press) —
+driven by two per-theme shadow variables. Light theme uses the classic
+`#e0e5ec` family with white/`#b8bec7` shadows (matching the original repo);
+dark theme lifts the surface to a midtone charcoal with its own tuned pair
+(derived from the original's oklch values), never an automatic flip.
+Guardrails: text keeps the standard foreground tokens (AA on both
+surfaces), emerald stays the action accent, focus rings untouched, raised
+cards press inset on activation for tactile feedback. Applied to the
+Pollyglot product surface only; starter admin/auth pages unchanged.
+
+**Why:** Per-theme tuning is what makes dark neumorphism legible (a
+flipped light shadow pair reads as dirt on dark surfaces); scoping to the
+product surface keeps the diff reviewable; and empty states as recessed
+wells vs. content as raised cards gives the soft-UI hierarchy an actual
+meaning instead of decoration.

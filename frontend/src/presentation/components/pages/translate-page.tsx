@@ -166,7 +166,7 @@ export function TranslatePage() {
 			)}
 
 			{translate.data && (
-				<div className='mt-6 rounded-xl border bg-card p-6'>
+				<div className='mt-6 neu-card p-6'>
 					<p className='mb-1 text-xs font-medium uppercase tracking-widest text-muted-foreground'>
 						{translate.data.to}
 					</p>

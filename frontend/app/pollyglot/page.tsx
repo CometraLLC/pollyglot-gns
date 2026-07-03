@@ -60,7 +60,7 @@ export default function PollyglotHome() {
 								<Link
 									key={tile.title}
 									href={tile.href}
-									className='group rounded-xl border bg-card p-6 transition-colors hover:border-emerald-500/50 hover:bg-accent'>
+									className='group neu-card neu-interactive p-6'>
 									<tile.icon className='mb-4 h-5 w-5 text-emerald-600 dark:text-emerald-400' />
 									<h2 className='mb-1 text-sm font-semibold'>{tile.title}</h2>
 									<p className='text-sm text-muted-foreground'>{tile.description}</p>
@@ -69,7 +69,7 @@ export default function PollyglotHome() {
 								<div
 									key={tile.title}
 									aria-disabled='true'
-									className='rounded-xl border border-dashed bg-card/50 p-6 opacity-70'>
+									className='neu-inset rounded-xl p-6 opacity-80'>
 									<tile.icon className='mb-4 h-5 w-5 text-muted-foreground' />
 									<div className='mb-1 flex items-center gap-2'>
 										<h2 className='text-sm font-semibold'>{tile.title}</h2>

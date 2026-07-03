@@ -38,7 +38,7 @@ function HeroFlashcard() {
                     aria-pressed={flipped}
                     aria-label={flipped ? 'Hide answer' : 'Show answer'}
                     onClick={() => setFlipped((f) => !f)}
-                    className="relative block h-60 w-full cursor-pointer rounded-2xl border bg-card text-card-foreground shadow-lg transition-transform duration-500 [transform-style:preserve-3d] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    className="neu-card relative block h-60 w-full cursor-pointer rounded-2xl text-card-foreground transition-transform duration-500 [transform-style:preserve-3d] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                     style={{ transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}
                 >
                     {/* Front */}
@@ -75,7 +75,7 @@ function HeroFlashcard() {
                         aria-label={`Rate as ${label}`}
                         tabIndex={flipped ? 0 : -1}
                         onClick={rate}
-                        className="rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-emerald-500 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                        className="neu-btn rounded-full px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                     >
                         {label}
                     </button>
@@ -183,7 +183,7 @@ export function PollyglotLanding() {
                 <div className="mx-auto max-w-6xl px-6">
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                         {features.map((feature) => (
-                            <div key={feature.title} className="rounded-xl border bg-card p-6">
+                            <div key={feature.title} className="neu-card p-6">
                                 <feature.icon className="mb-4 h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                                 <h2 className="mb-2 text-sm font-semibold">{feature.title}</h2>
                                 <p className="text-sm leading-relaxed text-muted-foreground">{feature.body}</p>
