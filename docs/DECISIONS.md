@@ -505,3 +505,24 @@ typo shouldn't block 300 words) while the row cap bounds abuse; fresh SRS
 state on import is honest (we don't know the source app's scheduler); and
 the 415 catch is the standing argument for live-verifying every feature
 against the real stack.
+
+## D-025: Sharing is a capability code; cloning is a fresh copy
+
+**Date:** 2026-07-02 (issue Pollyglot#25)
+
+**Context:** Deck sharing could mean live collaboration, follower decks,
+or copies. Access control options ranged from public flags to ACLs.
+
+**Decision:** A nullable unique `share_code` on the deck (10 chars from
+an unambiguous alphabet, crypto/rand, collision-retried against the
+unique index) acts as a capability: any *authenticated* user with the
+link can preview (name, languages, count, five sample cards) and clone.
+Sharing is idempotent, revocable (code cleared), and codes are not
+enumerable. Clones are independent copies — cloner's ownership, fresh
+SRS state, unshared — with no backlink to the source.
+
+**Why:** Capability links are the simplest sharing model that matches
+the product's social reality (send a friend your deck); requiring auth
+keeps content behind accounts without an ACL system; fresh-copy
+semantics avoid the consistency swamp of live-shared decks (what happens
+to reviews when the owner edits?) — a clone is yours, full stop.
