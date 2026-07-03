@@ -63,6 +63,26 @@ describe('decksService request contract', () => {
 		expect(mocked.post).toHaveBeenCalledWith('/v1/decks/d1/cards', { front: 'f', back: 'b' })
 	})
 
+	it('passes card_type and reverse through on create', async () => {
+		await decksService.createCard('d1', {
+			front: '{{c1::猫}}が好き',
+			back: 'b',
+			card_type: 'cloze',
+		})
+		expect(mocked.post).toHaveBeenCalledWith('/v1/decks/d1/cards', {
+			front: '{{c1::猫}}が好き',
+			back: 'b',
+			card_type: 'cloze',
+		})
+
+		await decksService.createCard('d1', { front: 'f', back: 'b', reverse: true })
+		expect(mocked.post).toHaveBeenCalledWith('/v1/decks/d1/cards', {
+			front: 'f',
+			back: 'b',
+			reverse: true,
+		})
+	})
+
 	it('updates a card via PUT /v1/cards/{id}', async () => {
 		await decksService.updateCard('c1', { front: 'f', back: 'b' })
 		expect(mocked.put).toHaveBeenCalledWith('/v1/cards/c1', { front: 'f', back: 'b' })

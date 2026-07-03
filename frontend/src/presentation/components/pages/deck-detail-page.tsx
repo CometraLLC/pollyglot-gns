@@ -31,7 +31,7 @@ import {
 	useDeleteCard,
 	useUpdateCard,
 } from '@/src/application/hooks/use-decks'
-import type { Card, CardInput } from '@/src/domain/services/decks.service'
+import type { Card, CardInput, CardType } from '@/src/domain/services/decks.service'
 
 interface CardFormDialogProps {
 	open: boolean
@@ -40,16 +40,31 @@ interface CardFormDialogProps {
 	initial?: CardInput
 	onSubmit: (input: CardInput) => void
 	pending: boolean
+	// type/reverse options only apply when creating; edits change text only
+	withTypeOptions?: boolean
 }
 
-function CardFormDialog({ open, onOpenChange, title, initial, onSubmit, pending }: CardFormDialogProps) {
+function CardFormDialog({
+	open,
+	onOpenChange,
+	title,
+	initial,
+	onSubmit,
+	pending,
+	withTypeOptions = false,
+}: CardFormDialogProps) {
 	const [front, setFront] = useState(initial?.front ?? '')
 	const [back, setBack] = useState(initial?.back ?? '')
+	const [cardType, setCardType] = useState<CardType>('basic')
+	const [reverse, setReverse] = useState(false)
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
 		if (!front.trim() || !back.trim()) return
-		onSubmit({ front: front.trim(), back: back.trim() })
+		const input: CardInput = { front: front.trim(), back: back.trim() }
+		if (withTypeOptions && cardType === 'cloze') input.card_type = 'cloze'
+		if (withTypeOptions && cardType === 'basic' && reverse) input.reverse = true
+		onSubmit(input)
 	}
 
 	return (
@@ -62,14 +77,33 @@ function CardFormDialog({ open, onOpenChange, title, initial, onSubmit, pending 
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit} className='space-y-4'>
+					{withTypeOptions && (
+						<div className='space-y-2'>
+							<Label htmlFor='card-type'>Card type</Label>
+							<select
+								id='card-type'
+								value={cardType}
+								onChange={(e) => setCardType(e.target.value as CardType)}
+								className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500'
+							>
+								<option value='basic'>Basic — front and back</option>
+								<option value='cloze'>Cloze — fill in the blank</option>
+							</select>
+						</div>
+					)}
 					<div className='space-y-2'>
 						<Label htmlFor='card-front'>Front</Label>
 						<Input
 							id='card-front'
 							value={front}
 							onChange={(e) => setFront(e.target.value)}
-							placeholder='こんにちは'
+							placeholder={withTypeOptions && cardType === 'cloze' ? '水を{{c1::飲みます}}' : 'こんにちは'}
 						/>
+						{withTypeOptions && cardType === 'cloze' && (
+							<p className='text-xs text-muted-foreground'>
+								{'Wrap the hidden text like {{c1::word}} — it becomes the blank.'}
+							</p>
+						)}
 					</div>
 					<div className='space-y-2'>
 						<Label htmlFor='card-back'>Back</Label>
@@ -80,6 +114,18 @@ function CardFormDialog({ open, onOpenChange, title, initial, onSubmit, pending 
 							placeholder='hello'
 						/>
 					</div>
+					{withTypeOptions && cardType === 'basic' && (
+						<div className='flex items-center gap-2'>
+							<input
+								id='card-reverse'
+								type='checkbox'
+								checked={reverse}
+								onChange={(e) => setReverse(e.target.checked)}
+								className='h-4 w-4 accent-emerald-600'
+							/>
+							<Label htmlFor='card-reverse'>Also create reversed card (back → front)</Label>
+						</div>
+					)}
 					<DialogFooter>
 						<Button type='submit' disabled={pending}>
 							Save card
@@ -102,7 +148,14 @@ function CardRow({ card, deckId }: { card: Card; deckId: string }) {
 	return (
 		<div className='flex items-center justify-between gap-4 neu-card-sm px-4 py-3'>
 			<div className='min-w-0 flex-1'>
-				<p className='truncate font-medium'>{card.front}</p>
+				<p className='flex items-center gap-2 truncate font-medium'>
+					{card.front}
+					{card.card_type === 'cloze' && (
+						<span className='rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
+							cloze
+						</span>
+					)}
+				</p>
 				<p className='truncate text-sm text-muted-foreground'>{card.back}</p>
 			</div>
 			<div className='flex items-center gap-2'>
@@ -237,6 +290,7 @@ export function DeckDetailPage({ deckId }: { deckId: string }) {
 					open={addOpen}
 					onOpenChange={setAddOpen}
 					title='Add card'
+					withTypeOptions
 					pending={createCard.isPending}
 					onSubmit={(input) => createCard.mutate(input, { onSuccess: () => setAddOpen(false) })}
 				/>

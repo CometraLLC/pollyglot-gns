@@ -62,8 +62,8 @@ describe('DeckDetailPage', () => {
 		renderPage()
 
 		await user.click(await screen.findByRole('button', { name: /add card/i }))
-		await user.type(screen.getByLabelText(/front/i), 'みず')
-		await user.type(screen.getByLabelText(/back/i), 'water')
+		await user.type(screen.getByLabelText(/^front$/i), 'みず')
+		await user.type(screen.getByLabelText(/^back$/i), 'water')
 		await user.click(screen.getByRole('button', { name: /save card/i }))
 
 		await waitFor(() =>
@@ -74,6 +74,59 @@ describe('DeckDetailPage', () => {
 		)
 	})
 
+	it('creates a cloze card through the type selector', async () => {
+		const user = userEvent.setup()
+		mocked.listCards.mockResolvedValue([])
+		mocked.createCard.mockResolvedValue(card({ card_type: 'cloze' }))
+
+		renderPage()
+
+		await user.click(await screen.findByRole('button', { name: /add card/i }))
+		await user.selectOptions(screen.getByLabelText(/card type/i), 'cloze')
+		await user.click(screen.getByLabelText(/^front$/i))
+		await user.paste('水を{{c1::飲みます}}')
+		await user.type(screen.getByLabelText(/^back$/i), 'drink water')
+		await user.click(screen.getByRole('button', { name: /save card/i }))
+
+		await waitFor(() =>
+			expect(mocked.createCard).toHaveBeenCalledWith('deck-1', {
+				front: '水を{{c1::飲みます}}',
+				back: 'drink water',
+				card_type: 'cloze',
+			})
+		)
+	})
+
+	it('reverse checkbox requests the mirrored card', async () => {
+		const user = userEvent.setup()
+		mocked.listCards.mockResolvedValue([])
+		mocked.createCard.mockResolvedValue(card())
+
+		renderPage()
+
+		await user.click(await screen.findByRole('button', { name: /add card/i }))
+		await user.type(screen.getByLabelText(/^front$/i), 'ねこ')
+		await user.type(screen.getByLabelText(/^back$/i), 'cat')
+		await user.click(screen.getByLabelText(/also create reversed card/i))
+		await user.click(screen.getByRole('button', { name: /save card/i }))
+
+		await waitFor(() =>
+			expect(mocked.createCard).toHaveBeenCalledWith('deck-1', {
+				front: 'ねこ',
+				back: 'cat',
+				reverse: true,
+			})
+		)
+	})
+
+	it('marks cloze cards in the list', async () => {
+		mocked.listCards.mockResolvedValue([card({ card_type: 'cloze', front: '水を{{c1::飲みます}}' })])
+
+		renderPage()
+
+		expect(await screen.findByText('cloze')).toBeInTheDocument()
+	})
+
 	it('edits a card through the dialog', async () => {
 		const user = userEvent.setup()
 		mocked.listCards.mockResolvedValue([card()])
@@ -82,7 +135,7 @@ describe('DeckDetailPage', () => {
 		renderPage()
 
 		await user.click(await screen.findByRole('button', { name: /edit card こんにちは/i }))
-		const backInput = screen.getByLabelText(/back/i)
+		const backInput = screen.getByLabelText(/^back$/i)
 		await user.clear(backInput)
 		await user.type(backInput, 'good day')
 		await user.click(screen.getByRole('button', { name: /save card/i }))

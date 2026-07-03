@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, PartyPopper } from 'lucide-react'
+import { ArrowLeft, PartyPopper, Volume2 } from 'lucide-react'
 import { Button } from '@/src/presentation/components/ui/button'
 import { useDeck, useReviewCard, useStudyQueue } from '@/src/application/hooks/use-decks'
+import { blank, reveal } from '@/src/lib/cloze'
+import { canSpeak, speak } from '@/src/lib/speech'
 import type { Card, StudyRating } from '@/src/domain/services/decks.service'
 
 const ratings: Array<{ label: string; value: StudyRating }> = [
@@ -79,6 +81,10 @@ export function StudySessionPage({ deckId }: { deckId: string }) {
 	}
 
 	const card = session[index]
+	const isCloze = card.card_type === 'cloze'
+	const frontText = isCloze ? blank(card.front) : card.front
+	const answerText = isCloze ? reveal(card.front) : card.back
+	const spokenText = isCloze ? reveal(card.front) : card.front
 
 	const toggleFlip = () => {
 		setFlipped((f) => !f)
@@ -127,7 +133,7 @@ export function StudySessionPage({ deckId }: { deckId: string }) {
 						<span className='text-xs font-medium uppercase tracking-widest text-emerald-600 dark:text-emerald-400'>
 							{deck?.source_lang ?? ''}
 						</span>
-						<span className='text-3xl font-semibold'>{card.front}</span>
+						<span className='text-3xl font-semibold'>{frontText}</span>
 						<span className='text-xs text-muted-foreground'>Tap to reveal</span>
 					</span>
 					<span
@@ -137,7 +143,10 @@ export function StudySessionPage({ deckId }: { deckId: string }) {
 						<span className='text-xs font-medium uppercase tracking-widest text-muted-foreground'>
 							{deck?.target_lang ?? ''}
 						</span>
-						<span className='text-3xl font-semibold'>{flipped ? card.back : ''}</span>
+						<span className='text-3xl font-semibold'>{flipped ? answerText : ''}</span>
+						{isCloze && flipped && (
+							<span className='text-sm text-muted-foreground'>{card.back}</span>
+						)}
 						<span className='text-xs text-muted-foreground'>How well did you know it?</span>
 					</span>
 				</button>
@@ -169,12 +178,21 @@ export function StudySessionPage({ deckId }: { deckId: string }) {
 				</p>
 			)}
 
-			<p
-				className='mt-8 text-center text-sm text-muted-foreground'
-				aria-label={`Cards flipped: ${flips}`}
-			>
-				Cards Flipped: {flips}
-			</p>
+			<div className='mt-8 flex items-center justify-center gap-4'>
+				{canSpeak() && (
+					<button
+						type='button'
+						aria-label='Pronounce'
+						onClick={() => speak(spokenText, deck?.source_lang ?? '')}
+						className='neu-btn rounded-full p-2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500'
+					>
+						<Volume2 className='h-4 w-4' aria-hidden />
+					</button>
+				)}
+				<p className='text-center text-sm text-muted-foreground' aria-label={`Cards flipped: ${flips}`}>
+					Cards Flipped: {flips}
+				</p>
+			</div>
 		</div>
 	)
 }

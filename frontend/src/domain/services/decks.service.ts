@@ -11,11 +11,14 @@ export interface Deck {
   updated_at: string;
 }
 
+export type CardType = 'basic' | 'cloze';
+
 export interface Card {
   id: string;
   deck_id: string;
   front: string;
   back: string;
+  card_type: CardType;
   ease_factor: number;
   interval_days: number;
   repetitions: number;
@@ -33,6 +36,8 @@ export interface DeckInput {
 export interface CardInput {
   front: string;
   back: string;
+  card_type?: CardType;
+  reverse?: boolean;
 }
 
 /** Study rating: 0 Forgot … 4 Got it! */

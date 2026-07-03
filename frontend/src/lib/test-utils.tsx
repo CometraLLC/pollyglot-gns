@@ -67,6 +67,7 @@ export const CardFactory = createFactory<Card>((i) => ({
 	deck_id: 'deck-1',
 	front: 'こんにちは',
 	back: 'hello',
+	card_type: 'basic',
 	ease_factor: 2.5,
 	interval_days: 0,
 	repetitions: 0,
