@@ -66,6 +66,12 @@ make dev     # docker stack (API :8080) + Next dev server (:3000)
 make dev-down
 ```
 
+### Optional provider keys (backend/.env)
+
+| Variable | Effect |
+| -------- | ------ |
+| `SPEECH_PROVIDER=elevenlabs` + `ELEVENLABS_API_KEY` | Tutor messages play with a natural ElevenLabs voice; without it the UI falls back to the browser's built-in speech. |
+
 ### Seeded dev account
 
 In development the API seeds an account on startup so you can sign in

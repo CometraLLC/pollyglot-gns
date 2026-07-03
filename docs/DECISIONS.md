@@ -437,3 +437,24 @@ for free, exactly what a per-direction state machine would have bought at
 10× the complexity; a type column keeps cloze additive (existing cards
 untouched); and mirrored parser implementations with identical test tables
 keep the one format that crosses the API boundary honest on both sides.
+
+## D-022: Server speech is optional; the client always has a voice
+
+**Date:** 2026-07-02 (issue Pollyglot#28, requested by Marc)
+
+**Context:** Marc wants ElevenLabs voices for conversation practice. API
+keys may be absent (dev machines, CI), and audio must never be the reason
+a page breaks.
+
+**Decision:** `internal/speech` follows D-007: a `Provider` interface with
+an ElevenLabs implementation (multilingual model, key in the `xi-api-key`
+header server-side only, stub-server tests — never the network).
+`NewProvider` returns nil when unconfigured and `POST /v1/speech` answers
+503; the client's `speakWithFallback` tries server audio first and falls
+back to browser SpeechSynthesis on *any* failure, so the play button on
+tutor bubbles always works. Study-card pronunciation stays on browser TTS
+(single words don't justify API spend).
+
+**Why:** The 503-plus-fallback contract makes the premium voice a pure
+enhancement — zero configuration works everywhere, one env var upgrades
+it; and keeping the key behind our API means it never ships to browsers.
