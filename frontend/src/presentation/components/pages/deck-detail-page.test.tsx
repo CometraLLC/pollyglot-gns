@@ -14,6 +14,8 @@ vi.mock('@/src/domain/services/decks.service', () => ({
 		deleteCard: vi.fn(),
 		exportDeck: vi.fn(),
 		importDeck: vi.fn(),
+		shareDeck: vi.fn(),
+		unshareDeck: vi.fn(),
 	},
 }))
 
@@ -239,6 +241,34 @@ describe('DeckDetailPage', () => {
 
 		await waitFor(() => expect(mocked.exportDeck).toHaveBeenCalledWith('deck-1', 'csv'))
 		vi.unstubAllGlobals()
+	})
+
+	it('enables sharing and shows the link', async () => {
+		const user = userEvent.setup()
+		mocked.listCards.mockResolvedValue([])
+		mocked.shareDeck.mockResolvedValue({ share_code: 'ABCDEF2345' })
+
+		renderPage()
+
+		await user.click(await screen.findByRole('button', { name: /^share$/i }))
+		await user.click(screen.getByRole('button', { name: /enable sharing/i }))
+
+		await waitFor(() => expect(mocked.shareDeck).toHaveBeenCalledWith('deck-1'))
+		expect(await screen.findByText(/\/pollyglot\/shared\/ABCDEF2345/)).toBeInTheDocument()
+	})
+
+	it('disables sharing', async () => {
+		const user = userEvent.setup()
+		mocked.getDeck.mockResolvedValue(DeckFactory.build({ id: 'deck-1', card_count: 2, share_code: 'ABCDEF2345' }))
+		mocked.listCards.mockResolvedValue([])
+		mocked.unshareDeck.mockResolvedValue(undefined)
+
+		renderPage()
+
+		await user.click(await screen.findByRole('button', { name: /^share$/i }))
+		await user.click(screen.getByRole('button', { name: /disable sharing/i }))
+
+		await waitFor(() => expect(mocked.unshareDeck).toHaveBeenCalledWith('deck-1'))
 	})
 
 	it('deletes a card after confirmation', async () => {

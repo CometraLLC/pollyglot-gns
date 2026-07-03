@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Download, Pencil, Plus, Trash2, Upload } from 'lucide-react'
+import { ArrowLeft, Download, Pencil, Plus, Share2, Trash2, Upload } from 'lucide-react'
 import { Button } from '@/src/presentation/components/ui/button'
 import { Input } from '@/src/presentation/components/ui/input'
 import { Label } from '@/src/presentation/components/ui/label'
@@ -302,6 +302,77 @@ function ImportDialog({ deckId, open, onOpenChange }: { deckId: string; open: bo
 	)
 }
 
+function ShareDialog({ deckId, shareCode, open, onOpenChange }: {
+	deckId: string
+	shareCode: string | null | undefined
+	open: boolean
+	onOpenChange: (open: boolean) => void
+}) {
+	const queryClient = useQueryClient()
+	const invalidate = () => {
+		queryClient.invalidateQueries({ queryKey: deckKeys.detail(deckId) })
+		queryClient.invalidateQueries({ queryKey: deckKeys.lists() })
+	}
+	const share = useMutation({
+		mutationFn: () => decksService.shareDeck(deckId),
+		onSuccess: invalidate,
+	})
+	const unshare = useMutation({
+		mutationFn: () => decksService.unshareDeck(deckId),
+		onSuccess: invalidate,
+	})
+
+	const code = share.data?.share_code ?? shareCode
+	const link = code ? `/pollyglot/shared/${code}` : null
+
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className='sm:max-w-[425px]'>
+				<DialogHeader>
+					<DialogTitle>Share deck</DialogTitle>
+					<DialogDescription>
+						Anyone signed in with the link can preview this deck and add their own copy.
+					</DialogDescription>
+				</DialogHeader>
+				{link ? (
+					<div className='space-y-4'>
+						<div className='neu-inset rounded-lg px-4 py-3 text-sm break-all'>{link}</div>
+						<div className='flex gap-2'>
+							<Button
+								variant='outline'
+								onClick={() => void navigator.clipboard?.writeText(`${window.location.origin}${link}`)}
+							>
+								Copy link
+							</Button>
+							<Button
+								variant='outline'
+								className='text-red-600 hover:text-red-600'
+								disabled={unshare.isPending}
+								onClick={() => unshare.mutate()}
+							>
+								Disable sharing
+							</Button>
+						</div>
+					</div>
+				) : (
+					<Button
+						className='bg-emerald-600 text-white hover:bg-emerald-700'
+						disabled={share.isPending}
+						onClick={() => share.mutate()}
+					>
+						Enable sharing
+					</Button>
+				)}
+				{(share.isError || unshare.isError) && (
+					<p className='text-sm text-red-600 dark:text-red-400'>
+						Could not update sharing. Try again.
+					</p>
+				)}
+			</DialogContent>
+		</Dialog>
+	)
+}
+
 function downloadBlob(blob: Blob, filename: string) {
 	const url = URL.createObjectURL(blob)
 	const link = document.createElement('a')
@@ -316,6 +387,7 @@ export function DeckDetailPage({ deckId }: { deckId: string }) {
 	const { data: cards, isPending, isError } = useCards(deckId)
 	const [addOpen, setAddOpen] = useState(false)
 	const [importOpen, setImportOpen] = useState(false)
+	const [shareOpen, setShareOpen] = useState(false)
 	const createCard = useCreateCard(deckId)
 	const exportDeck = useMutation({
 		mutationFn: () => decksService.exportDeck(deckId, 'csv'),
@@ -342,6 +414,10 @@ export function DeckDetailPage({ deckId }: { deckId: string }) {
 					)}
 				</div>
 				<div className='flex flex-wrap gap-2'>
+					<Button variant='outline' onClick={() => setShareOpen(true)}>
+						<Share2 className='mr-2 h-4 w-4' />
+						Share
+					</Button>
 					<Button variant='outline' onClick={() => exportDeck.mutate()} disabled={exportDeck.isPending}>
 						<Download className='mr-2 h-4 w-4' />
 						Export CSV
@@ -386,6 +462,7 @@ export function DeckDetailPage({ deckId }: { deckId: string }) {
 			)}
 
 			<ImportDialog deckId={deckId} open={importOpen} onOpenChange={setImportOpen} />
+			<ShareDialog deckId={deckId} shareCode={deck?.share_code} open={shareOpen} onOpenChange={setShareOpen} />
 
 			{addOpen && (
 				<CardFormDialog
