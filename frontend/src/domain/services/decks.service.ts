@@ -43,6 +43,11 @@ export interface CardInput {
 /** Study rating: 0 Forgot … 4 Got it! */
 export type StudyRating = 0 | 1 | 2 | 3 | 4;
 
+export interface ImportResult {
+  imported: number;
+  skipped: Array<{ line: number; error: string }>;
+}
+
 export const decksService = {
   async listDecks(): Promise<Deck[]> {
     const response = await apiClient.get<Deck[]>('/v1/decks');
@@ -96,6 +101,23 @@ export const decksService = {
 
   async reviewCard(cardId: string, rating: StudyRating): Promise<Card> {
     const response = await apiClient.post<Card>(`/v1/cards/${cardId}/review`, { rating });
+    return response.data;
+  },
+
+  async exportDeck(deckId: string, format: 'csv' | 'tsv'): Promise<Blob> {
+    const response = await apiClient.get<Blob>(`/v1/decks/${deckId}/export`, {
+      params: { format },
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  async importDeck(deckId: string, file: File): Promise<ImportResult> {
+    const form = new FormData();
+    form.append('file', file);
+    const response = await apiClient.post<ImportResult>(`/v1/decks/${deckId}/import`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
 };

@@ -12,6 +12,8 @@ vi.mock('@/src/domain/services/decks.service', () => ({
 		createCard: vi.fn(),
 		updateCard: vi.fn(),
 		deleteCard: vi.fn(),
+		exportDeck: vi.fn(),
+		importDeck: vi.fn(),
 	},
 }))
 
@@ -188,6 +190,55 @@ describe('DeckDetailPage', () => {
 
 		const back = await screen.findByRole('link', { name: /back to decks/i })
 		expect(back).toHaveAttribute('href', '/pollyglot/decks')
+	})
+
+	it('imports a file and shows the summary with row errors', async () => {
+		const user = userEvent.setup()
+		mocked.listCards.mockResolvedValue([])
+		mocked.importDeck.mockResolvedValue({
+			imported: 2,
+			skipped: [{ line: 3, error: 'front is required' }],
+		})
+
+		renderPage()
+
+		await user.click(await screen.findByRole('button', { name: /^import$/i }))
+		const file = new File(['front,back\nねこ,cat'], 'cards.csv', { type: 'text/csv' })
+		await user.upload(screen.getByLabelText(/csv or tsv file/i), file)
+		await user.click(screen.getByRole('button', { name: /import cards/i }))
+
+		expect(await screen.findByText(/imported 2 cards/i)).toBeInTheDocument()
+		expect(screen.getByText(/line 3: front is required/i)).toBeInTheDocument()
+		expect(mocked.importDeck).toHaveBeenCalledWith('deck-1', file)
+	})
+
+	it('does not import without a file', async () => {
+		const user = userEvent.setup()
+		mocked.listCards.mockResolvedValue([])
+
+		renderPage()
+
+		await user.click(await screen.findByRole('button', { name: /^import$/i }))
+		await user.click(screen.getByRole('button', { name: /import cards/i }))
+
+		expect(mocked.importDeck).not.toHaveBeenCalled()
+	})
+
+	it('exports the deck as csv', async () => {
+		const user = userEvent.setup()
+		mocked.listCards.mockResolvedValue([])
+		mocked.exportDeck.mockResolvedValue(new Blob(['front,back,card_type']))
+		vi.stubGlobal('URL', {
+			createObjectURL: vi.fn(() => 'blob:x'),
+			revokeObjectURL: vi.fn(),
+		})
+
+		renderPage()
+
+		await user.click(await screen.findByRole('button', { name: /export csv/i }))
+
+		await waitFor(() => expect(mocked.exportDeck).toHaveBeenCalledWith('deck-1', 'csv'))
+		vi.unstubAllGlobals()
 	})
 
 	it('deletes a card after confirmation', async () => {

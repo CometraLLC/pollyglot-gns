@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Pencil, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, Download, Pencil, Plus, Trash2, Upload } from 'lucide-react'
 import { Button } from '@/src/presentation/components/ui/button'
 import { Input } from '@/src/presentation/components/ui/input'
 import { Label } from '@/src/presentation/components/ui/label'
@@ -31,6 +31,10 @@ import {
 	useDeleteCard,
 	useUpdateCard,
 } from '@/src/application/hooks/use-decks'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { deckKeys } from '@/src/application/hooks/use-decks'
+import { decksService } from '@/src/domain/services/decks.service'
+import type { ImportResult } from '@/src/domain/services/decks.service'
 import type { Card, CardInput, CardType } from '@/src/domain/services/decks.service'
 
 interface CardFormDialogProps {
@@ -226,11 +230,97 @@ function CardRow({ card, deckId }: { card: Card; deckId: string }) {
 	)
 }
 
+function ImportDialog({ deckId, open, onOpenChange }: { deckId: string; open: boolean; onOpenChange: (open: boolean) => void }) {
+	const queryClient = useQueryClient()
+	const [file, setFile] = useState<File | null>(null)
+	const [result, setResult] = useState<ImportResult | null>(null)
+	const importDeck = useMutation({
+		mutationFn: (upload: File) => decksService.importDeck(deckId, upload),
+		onSuccess: (summary) => {
+			setResult(summary)
+			queryClient.invalidateQueries({ queryKey: deckKeys.cards(deckId) })
+			queryClient.invalidateQueries({ queryKey: deckKeys.detail(deckId) })
+			queryClient.invalidateQueries({ queryKey: deckKeys.lists() })
+		},
+	})
+
+	const submit = (e: React.FormEvent) => {
+		e.preventDefault()
+		if (!file) return
+		setResult(null)
+		importDeck.mutate(file)
+	}
+
+	return (
+		<Dialog open={open} onOpenChange={(next) => { onOpenChange(next); if (!next) { setFile(null); setResult(null) } }}>
+			<DialogContent className='sm:max-w-[425px]'>
+				<DialogHeader>
+					<DialogTitle>Import cards</DialogTitle>
+					<DialogDescription>
+						CSV or TSV with front and back columns (a third card_type column is optional). Anki TSV exports work as-is.
+					</DialogDescription>
+				</DialogHeader>
+				<form onSubmit={submit} className='space-y-4'>
+					<div className='space-y-2'>
+						<Label htmlFor='import-file'>CSV or TSV file</Label>
+						<Input
+							id='import-file'
+							type='file'
+							accept='.csv,.tsv,text/csv,text/tab-separated-values'
+							onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+						/>
+					</div>
+					<DialogFooter>
+						<Button type='submit' disabled={importDeck.isPending}>
+							Import cards
+						</Button>
+					</DialogFooter>
+				</form>
+				{importDeck.isError && (
+					<p className='text-sm text-red-600 dark:text-red-400'>
+						Import failed. Check the file format and try again.
+					</p>
+				)}
+				{result && (
+					<div className='space-y-1 text-sm'>
+						<p className='font-medium text-emerald-600 dark:text-emerald-400'>
+							Imported {result.imported} {result.imported === 1 ? 'card' : 'cards'}.
+						</p>
+						{result.skipped.length > 0 && (
+							<ul className='list-inside list-disc text-muted-foreground'>
+								{result.skipped.map((row) => (
+									<li key={row.line}>
+										Line {row.line}: {row.error}
+									</li>
+								))}
+							</ul>
+						)}
+					</div>
+				)}
+			</DialogContent>
+		</Dialog>
+	)
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+	const url = URL.createObjectURL(blob)
+	const link = document.createElement('a')
+	link.href = url
+	link.download = filename
+	link.click()
+	URL.revokeObjectURL(url)
+}
+
 export function DeckDetailPage({ deckId }: { deckId: string }) {
 	const { data: deck } = useDeck(deckId)
 	const { data: cards, isPending, isError } = useCards(deckId)
 	const [addOpen, setAddOpen] = useState(false)
+	const [importOpen, setImportOpen] = useState(false)
 	const createCard = useCreateCard(deckId)
+	const exportDeck = useMutation({
+		mutationFn: () => decksService.exportDeck(deckId, 'csv'),
+		onSuccess: (blob) => downloadBlob(blob, `${deck?.name ?? 'deck'}.csv`),
+	})
 
 	return (
 		<div className='mx-auto max-w-4xl'>
@@ -251,13 +341,23 @@ export function DeckDetailPage({ deckId }: { deckId: string }) {
 						</p>
 					)}
 				</div>
-				<Button
-					className='bg-emerald-600 text-white hover:bg-emerald-700'
-					onClick={() => setAddOpen(true)}
-				>
-					<Plus className='mr-2 h-4 w-4' />
-					Add card
-				</Button>
+				<div className='flex flex-wrap gap-2'>
+					<Button variant='outline' onClick={() => exportDeck.mutate()} disabled={exportDeck.isPending}>
+						<Download className='mr-2 h-4 w-4' />
+						Export CSV
+					</Button>
+					<Button variant='outline' onClick={() => setImportOpen(true)}>
+						<Upload className='mr-2 h-4 w-4' />
+						Import
+					</Button>
+					<Button
+						className='bg-emerald-600 text-white hover:bg-emerald-700'
+						onClick={() => setAddOpen(true)}
+					>
+						<Plus className='mr-2 h-4 w-4' />
+						Add card
+					</Button>
+				</div>
 			</div>
 
 			{isPending && <p className='text-muted-foreground'>Loading cards…</p>}
@@ -284,6 +384,8 @@ export function DeckDetailPage({ deckId }: { deckId: string }) {
 					))}
 				</div>
 			)}
+
+			<ImportDialog deckId={deckId} open={importOpen} onOpenChange={setImportOpen} />
 
 			{addOpen && (
 				<CardFormDialog

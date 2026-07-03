@@ -109,6 +109,33 @@ describe('decksService request contract', () => {
 		expect(mocked.post).toHaveBeenCalledWith('/v1/cards/c1/review', { rating: 4 })
 	})
 
+	it('exports a deck via GET /v1/decks/{id}/export expecting a blob', async () => {
+		mocked.get.mockResolvedValue({ data: new Blob(['csv']) })
+
+		await decksService.exportDeck('d1', 'tsv')
+
+		expect(mocked.get).toHaveBeenCalledWith('/v1/decks/d1/export', {
+			params: { format: 'tsv' },
+			responseType: 'blob',
+		})
+	})
+
+	it('imports a deck via multipart POST /v1/decks/{id}/import', async () => {
+		mocked.post.mockResolvedValue({ data: { imported: 2, skipped: [] } })
+		const file = new File(['a,b'], 'cards.csv', { type: 'text/csv' })
+
+		const result = await decksService.importDeck('d1', file)
+
+		expect(mocked.post).toHaveBeenCalledWith(
+			'/v1/decks/d1/import',
+			expect.any(FormData),
+			{ headers: { 'Content-Type': 'multipart/form-data' } }
+		)
+		const sentForm = mocked.post.mock.calls[0][1] as FormData
+		expect(sentForm.get('file')).toBe(file)
+		expect(result.imported).toBe(2)
+	})
+
 	it('unwraps response data', async () => {
 		const decks = [{ id: 'd1' }]
 		mocked.get.mockResolvedValue({ data: decks })
