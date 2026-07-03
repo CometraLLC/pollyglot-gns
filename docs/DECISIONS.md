@@ -389,3 +389,26 @@ Postgres 18.4, Next.js 16.2.10.
 volume makes data rollback instant rather than a restore drill; per-stage
 verification means a failure pins to one component instead of one big-bang
 upgrade to bisect.
+
+## D-020: Due counts ride the deck list; the daily goal lives on the user
+
+**Date:** 2026-07-02 (issue Pollyglot#22)
+
+**Context:** Learners need to see where work is waiting (due cards) and
+have a target (daily goal). Options were a separate due-counts endpoint vs
+enriching the existing deck payload, and a settings module vs a column.
+
+**Decision:** `DeckResponse` gains `due_count` computed alongside
+`card_count` in the deck list/detail queries — no new endpoint, badges
+render wherever decks render. The goal is a `users.daily_goal` column
+(default 20, DB CHECK > 0) read/written through the stats module
+(`GET /v1/stats` includes it; `PUT /v1/stats/goal`, validated 1–500 with a
+pointer DTO so 0 is rejected not ignored). The stats page gets a
+progressbar (proper ARIA value semantics) with a met-state celebration;
+"met" is `reviews_today >= goal`, so raising the goal mid-day can honestly
+un-meet it.
+
+**Why:** The deck list is already the surface where "what should I study"
+gets decided — a second request per deck would just be latency; a full
+settings module for one integer is ceremony, and the stats module already
+owns the review-count context that gives the goal meaning.
