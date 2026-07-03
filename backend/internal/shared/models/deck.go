@@ -13,6 +13,7 @@ type Deck struct {
 	Name       string     `gorm:"type:varchar(100);not null"`
 	SourceLang string     `gorm:"type:varchar(50);not null"`
 	TargetLang string     `gorm:"type:varchar(50);not null"`
+	ShareCode  *string    `gorm:"type:varchar(12);uniqueIndex"`
 	CreatedAt  time.Time  `gorm:"not null;default:now()"`
 	UpdatedAt  time.Time  `gorm:"not null;default:now()"`
 	DeletedAt  *time.Time `gorm:"index"`
