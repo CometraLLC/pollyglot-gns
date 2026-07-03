@@ -7,6 +7,7 @@ import (
 	"github.com/base-go/backend/internal/auth"
 	"github.com/base-go/backend/internal/decks"
 	"github.com/base-go/backend/internal/rbac"
+	"github.com/base-go/backend/internal/translate"
 	"github.com/base-go/backend/pkg/cache"
 	"github.com/base-go/backend/pkg/database"
 	"github.com/base-go/backend/pkg/router"
@@ -64,6 +65,19 @@ func New() (*dig.Container, error) {
 	}
 
 	if err := container.Provide(decks.NewHandler); err != nil {
+		return nil, err
+	}
+
+	// translate module
+	if err := container.Provide(translate.NewTranslator); err != nil {
+		return nil, err
+	}
+
+	if err := container.Provide(translate.NewService); err != nil {
+		return nil, err
+	}
+
+	if err := container.Provide(translate.NewHandler); err != nil {
 		return nil, err
 	}
 

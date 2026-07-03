@@ -247,3 +247,24 @@ defaults prevent accidental cross-test identity collisions; pinning the
 seeded fixtures in code keeps manual-testing credentials and automated tests
 from drifting apart. Conventions recorded in CLAUDE.md so future sessions
 follow them.
+
+## D-014: Translation ships with a built-in dictionary provider
+
+**Date:** 2026-07-02 (issue Pollyglot#14)
+
+**Context:** D-007 mandates deterministic defaults behind provider
+interfaces. The translate feature needs to do *something* real without ML
+infra or API keys.
+
+**Decision:** `Translator` interface selected by `TRANSLATOR_PROVIDER`
+(default `dictionary`). The dictionary provider embeds a small bidirectional
+word list (Japanese/Spanish/French/German ↔ English) that includes every
+word in the dev-seeded starter deck; unknown input returns 422 "no
+translation available" (provider outages would be 502). The UI treats 422 as
+a friendly message, not an error state.
+
+**Why:** A lookup that really translates the demo content makes the feature
+honest end-to-end (demo account → starter deck → translate → save back as a
+card) while keeping tests hermetic. Distinguishing 422 (no data) from 502
+(provider broken) means the future ML/LLM provider drops in without any
+handler or UI changes.
