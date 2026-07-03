@@ -8,6 +8,12 @@ import {
 } from '@/src/lib/test-utils'
 import { ConversationChatPage } from './conversation-chat-page'
 
+vi.mock('@/src/lib/speech', () => ({
+	speakWithFallback: vi.fn().mockResolvedValue(undefined),
+}))
+
+import { speakWithFallback } from '@/src/lib/speech'
+
 vi.mock('@/src/domain/services/conversation.service', () => ({
 	conversationService: {
 		listConversations: vi.fn(),
@@ -69,7 +75,7 @@ describe('ConversationChatPage', () => {
 		renderPage()
 		await screen.findByText('Welcome?')
 
-		await user.type(screen.getByLabelText(/message/i), 'ねこ')
+		await user.type(screen.getByLabelText(/^message$/i), 'ねこ')
 		await user.click(screen.getByRole('button', { name: /send/i }))
 
 		expect(await screen.findByText('ねこ')).toBeInTheDocument()
@@ -78,7 +84,7 @@ describe('ConversationChatPage', () => {
 		expect(mocked.listMessages).toHaveBeenCalledTimes(1)
 
 		// input clears after a successful send
-		expect(screen.getByLabelText(/message/i)).toHaveValue('')
+		expect(screen.getByLabelText(/^message$/i)).toHaveValue('')
 	})
 
 	it('does not send empty messages', async () => {
@@ -86,7 +92,7 @@ describe('ConversationChatPage', () => {
 		mocked.listMessages.mockResolvedValue([])
 
 		renderPage()
-		await screen.findByLabelText(/message/i)
+		await screen.findByLabelText(/^message$/i)
 
 		await user.click(screen.getByRole('button', { name: /send/i }))
 
@@ -99,13 +105,31 @@ describe('ConversationChatPage', () => {
 		mocked.sendMessage.mockRejectedValue(new Error('offline'))
 
 		renderPage()
-		await screen.findByLabelText(/message/i)
+		await screen.findByLabelText(/^message$/i)
 
-		await user.type(screen.getByLabelText(/message/i), 'ねこ')
+		await user.type(screen.getByLabelText(/^message$/i), 'ねこ')
 		await user.click(screen.getByRole('button', { name: /send/i }))
 
 		expect(await screen.findByText(/could not send/i)).toBeInTheDocument()
-		expect(screen.getByLabelText(/message/i)).toHaveValue('ねこ')
+		expect(screen.getByLabelText(/^message$/i)).toHaveValue('ねこ')
+	})
+
+	it('plays tutor messages in the conversation language', async () => {
+		const user = userEvent.setup()
+		mocked.listMessages.mockResolvedValue([
+			MessageFactory.build({ id: 'm1', role: 'tutor', content: 'What do you know?' }),
+			MessageFactory.build({ id: 'm2', role: 'user', content: 'こんにちは' }),
+		])
+
+		renderPage()
+		await screen.findByText('What do you know?')
+
+		const playButtons = screen.getAllByRole('button', { name: /play message/i })
+		expect(playButtons).toHaveLength(1)
+
+		await user.click(playButtons[0])
+
+		expect(vi.mocked(speakWithFallback)).toHaveBeenCalledWith('What do you know?', 'Japanese')
 	})
 
 	it('links back to the conversation list', async () => {
