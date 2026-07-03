@@ -60,3 +60,91 @@ jobs:
 
       - name: Run Build
         run: bun run build
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: gns_user
+          POSTGRES_PASSWORD: gns_password
+          POSTGRES_DB: gns_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U gns_user"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Configure backend for service containers
+        working-directory: backend
+        run: |
+          sed -e 's/^DB_HOST=postgres/DB_HOST=localhost/' \
+              -e 's/^CACHE_HOST=redis/CACHE_HOST=localhost/' \
+              -e 's/^REDIS_HOST=redis/REDIS_HOST=localhost/' \
+              .env.example > .env
+          # the config loader does no env expansion — render real values
+          set -a; source .env; set +a
+          envsubst < config/config.template.yaml > config/config.development.yaml
+
+      - name: Start backend (runs migrations + seeds)
+        working-directory: backend
+        run: |
+          # config.LoadConfig substitutes ${VARS} in init(), before godotenv
+          # runs — export the .env like docker's env_file does locally
+          set -a; source .env; set +a
+          go run ./cmd/api/main.go &
+          for i in $(seq 1 60); do
+            if curl -sf -X POST http://localhost:8080/v1/auth/login \
+              -H 'Content-Type: application/json' \
+              -d '{"email":"demo@pollyglot.dev","password":"Password123!"}' >/dev/null; then
+              echo "backend ready"; exit 0
+            fi
+            sleep 2
+          done
+          echo "backend never became ready" >&2; exit 1
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: |
+          bun install
+          bunx playwright install --with-deps chromium
+
+      - name: Run E2E suite
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8080
+        run: bun run test:e2e
+
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: frontend/test-results/
+          retention-days: 7

@@ -61,6 +61,7 @@ issue lands via a test-first PR that must be green before merge.
 
 ```bash
 make check   # everything CI runs: backend lint+tests, frontend lint+tests+build
+cd frontend && bun run test:e2e   # Playwright against the running stack (make dev first)
 make test    # all tests only
 make dev     # docker stack (API :8080) + Next dev server (:3000)
 make dev-down

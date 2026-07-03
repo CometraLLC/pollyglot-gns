@@ -526,3 +526,30 @@ the product's social reality (send a friend your deck); requiring auth
 keeps content behind accounts without an ACL system; fresh-copy
 semantics avoid the consistency swamp of live-shared decks (what happens
 to reviews when the owner edits?) — a clone is yours, full stop.
+
+## D-026: E2E runs the real stack in a real browser, selectors by role only
+
+**Date:** 2026-07-02 (issue Pollyglot#26)
+
+**Context:** Unit suites mock the service boundary on both sides, which is
+exactly where two integration bugs slipped through this project (the
+double-/v1 URL and the multipart 415). Something has to drive the whole
+thing.
+
+**Decision:** Playwright (chromium) specs covering register/login, the
+full deck→card→study→stats loop, translate (hit and miss), and a Socratic
+exchange — asserting persona properties (quotes the learner, ends with a
+question), not exact strings. Selectors are roles/labels exclusively, so
+the suite is also a standing accessibility check; unique names per run
+keep specs idempotent against a dirty database. CI gets a dedicated job
+with Postgres 18/Redis 8 service containers, boots the real backend
+(`go run`, migrations + seeds included), waits for a seeded login to
+succeed, then runs the suite with retries=1 and trace-on-retry artifacts;
+locally it reuses the running dev stack (zero retries — flakes must be
+fixed, not retried, where debugging is cheap).
+
+**Why:** Role-only selectors mean a markup refactor can't silently break
+the suite but an accessibility regression will; asserting persona
+properties keeps tutor-script tweaks from churning specs; and booting the
+genuine backend in CI is the only setup that would have caught both of
+this project's real integration bugs.

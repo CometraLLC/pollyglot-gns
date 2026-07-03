@@ -16,3 +16,7 @@ docker-compose.override.yml
 .DS_Store
 Thumbs.db
 backups/
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
