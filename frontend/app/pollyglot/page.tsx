@@ -25,7 +25,7 @@ const tiles = [
 		description: 'Translate a phrase and save it as a card.',
 		href: '/pollyglot/translate',
 		icon: Languages,
-		available: false,
+		available: true,
 	},
 	{
 		title: 'Conversation',

@@ -54,7 +54,7 @@ signing in):
 | ------- | ------ | ----- |
 | Decks & cards CRUD | ✅ | `/pollyglot/decks`, API `/v1/decks` |
 | Spaced-repetition study (SM-2) | ✅ | `/pollyglot/study`, API `/v1/cards/{id}/review` + `/v1/decks/{id}/queue` |
-| Translate | 🔜 | Pollyglot#14 |
+| Translate (dictionary provider, save-to-deck) | ✅ | `/pollyglot/translate`, API `/v1/translate` |
 | Conversation practice | 🔜 | Pollyglot#15 |
 | Progress & stats | 🔜 | Pollyglot#16 |
 
