@@ -2,19 +2,20 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Send } from 'lucide-react'
+import { ArrowLeft, Send, Volume2 } from 'lucide-react'
 import { Button } from '@/src/presentation/components/ui/button'
 import { Input } from '@/src/presentation/components/ui/input'
 import { useConversations, useMessages, useSendMessage } from '@/src/application/hooks/use-conversations'
+import { speakWithFallback } from '@/src/lib/speech'
 import { cn } from '@/src/lib/utils'
 import type { Message } from '@/src/domain/services/conversation.service'
 
-function MessageBubble({ message }: { message: Message }) {
+function MessageBubble({ message, language }: { message: Message; language: string }) {
 	const isTutor = message.role === 'tutor'
 	return (
 		<div
 			aria-label={isTutor ? 'Tutor said' : 'You said'}
-			className={cn('flex', isTutor ? 'justify-start' : 'justify-end')}
+			className={cn('flex items-end gap-1', isTutor ? 'justify-start' : 'justify-end')}
 		>
 			<div
 				className={cn(
@@ -26,6 +27,16 @@ function MessageBubble({ message }: { message: Message }) {
 			>
 				{message.content}
 			</div>
+			{isTutor && (
+				<button
+					type='button'
+					aria-label='Play message'
+					onClick={() => void speakWithFallback(message.content, language)}
+					className='neu-btn rounded-full p-1.5 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500'
+				>
+					<Volume2 className='h-3.5 w-3.5' aria-hidden />
+				</button>
+			)}
 		</div>
 	)
 }
@@ -75,7 +86,7 @@ export function ConversationChatPage({ conversationId }: { conversationId: strin
 					</p>
 				)}
 				{messages?.map((message) => (
-					<MessageBubble key={message.id} message={message} />
+					<MessageBubble key={message.id} message={message} language={conversation?.language ?? ''} />
 				))}
 				{sendMessage.isPending && (
 					<p className='text-xs text-muted-foreground'>The tutor is thinking…</p>

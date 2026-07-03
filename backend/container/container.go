@@ -8,6 +8,7 @@ import (
 	"github.com/base-go/backend/internal/conversation"
 	"github.com/base-go/backend/internal/decks"
 	"github.com/base-go/backend/internal/rbac"
+	"github.com/base-go/backend/internal/speech"
 	"github.com/base-go/backend/internal/stats"
 	"github.com/base-go/backend/internal/translate"
 	"github.com/base-go/backend/pkg/cache"
@@ -112,6 +113,19 @@ func New() (*dig.Container, error) {
 	}
 
 	if err := container.Provide(stats.NewHandler); err != nil {
+		return nil, err
+	}
+
+	// speech module
+	if err := container.Provide(speech.NewProvider); err != nil {
+		return nil, err
+	}
+
+	if err := container.Provide(speech.NewService); err != nil {
+		return nil, err
+	}
+
+	if err := container.Provide(speech.NewHandler); err != nil {
 		return nil, err
 	}
 

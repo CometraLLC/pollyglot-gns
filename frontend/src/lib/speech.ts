@@ -1,5 +1,9 @@
-// Browser speech synthesis for pronunciation (Pollyglot#23).
-// Feature-detected: callers hide their UI when canSpeak() is false.
+// Speech for pronunciation and tutor messages.
+// speak(): browser SpeechSynthesis, feature-detected (Pollyglot#23).
+// speakWithFallback(): server audio (ElevenLabs) first, browser TTS on
+// any failure — including the 503 when no provider is configured
+// (Pollyglot#28).
+import { speechService } from '@/src/domain/services/speech.service'
 
 const tags: Record<string, string> = {
 	japanese: 'ja-JP',
@@ -30,4 +34,16 @@ export function speak(text: string, language: string): void {
 	const tag = languageTag(language)
 	if (tag) utterance.lang = tag
 	window.speechSynthesis.speak(utterance)
+}
+
+export async function speakWithFallback(text: string, language: string): Promise<void> {
+	try {
+		const audio = await speechService.synthesize(text, language)
+		const url = URL.createObjectURL(audio)
+		const player = new Audio(url)
+		player.onended = () => URL.revokeObjectURL(url)
+		await player.play()
+	} catch {
+		speak(text, language)
+	}
 }
