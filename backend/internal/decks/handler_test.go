@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -31,6 +33,10 @@ type fakeService struct {
 	gotCardID uuid.UUID
 	gotRating int
 	gotLimit  int
+
+	gotFormat    string
+	gotUpload    string
+	importResult *ImportResult
 }
 
 func (f *fakeService) CreateDeck(_ context.Context, userID uuid.UUID, _ CreateDeckRequest) (*DeckResponse, int, error) {
@@ -90,6 +96,20 @@ func (f *fakeService) GetStudyQueue(_ context.Context, userID, deckID uuid.UUID,
 	f.gotUserID, f.gotDeckID = userID, deckID
 	f.gotLimit = limit
 	return f.cardsResp, f.status, f.err
+}
+
+func (f *fakeService) ExportDeck(_ context.Context, userID, deckID uuid.UUID, format string) (string, string, int, error) {
+	f.gotUserID, f.gotDeckID = userID, deckID
+	f.gotFormat = format
+	return "japanese-basics." + format, "front,back,card_type\n", f.status, f.err
+}
+
+func (f *fakeService) ImportDeck(_ context.Context, userID, deckID uuid.UUID, file io.Reader, format string) (*ImportResult, int, error) {
+	f.gotUserID, f.gotDeckID = userID, deckID
+	f.gotFormat = format
+	body, _ := io.ReadAll(file)
+	f.gotUpload = string(body)
+	return f.importResult, f.status, f.err
 }
 
 // testRouter mounts the handler exactly as pkg/router does, with a stub
@@ -288,4 +308,61 @@ func TestHandlerStudyQueue(t *testing.T) {
 	rec = doJSON(t, mux, http.MethodGet, "/v1/decks/"+deckID.String()+"/queue?limit=abc", nil)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	assert.Equal(t, 0, svc.gotLimit)
+}
+
+func TestHandlerExportDeck(t *testing.T) {
+	user, _ := authedUser()
+	deckID := uuid.New()
+	svc := &fakeService{status: http.StatusOK}
+	mux := testRouter(svc, user)
+
+	rec := doJSON(t, mux, http.MethodGet, "/v1/decks/"+deckID.String()+"/export?format=tsv", nil)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, "tsv", svc.gotFormat)
+	assert.Contains(t, rec.Header().Get("Content-Type"), "tab-separated")
+	assert.Contains(t, rec.Header().Get("Content-Disposition"), `attachment; filename="japanese-basics.tsv"`)
+
+	rec = doJSON(t, mux, http.MethodGet, "/v1/decks/"+deckID.String()+"/export", nil)
+	assert.Equal(t, "csv", svc.gotFormat, "format defaults to csv")
+	assert.Contains(t, rec.Header().Get("Content-Type"), "text/csv")
+}
+
+func TestHandlerImportDeck(t *testing.T) {
+	user, _ := authedUser()
+	deckID := uuid.New()
+	svc := &fakeService{
+		status:       http.StatusOK,
+		importResult: &ImportResult{Imported: 2, Skipped: []RowError{}},
+	}
+	mux := testRouter(svc, user)
+
+	var buf bytes.Buffer
+	mw := multipart.NewWriter(&buf)
+	part, err := mw.CreateFormFile("file", "cards.tsv")
+	require.NoError(t, err)
+	_, _ = part.Write([]byte("ねこ\tcat\n"))
+	require.NoError(t, mw.Close())
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/decks/"+deckID.String()+"/import", &buf)
+	req.Header.Set("Content-Type", mw.FormDataContentType())
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, "tsv", svc.gotFormat, "format inferred from the filename")
+	assert.Contains(t, svc.gotUpload, "ねこ")
+
+	var body ImportResult
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &body))
+	assert.Equal(t, 2, body.Imported)
+}
+
+func TestHandlerImportDeckMissingFile(t *testing.T) {
+	user, _ := authedUser()
+	mux := testRouter(&fakeService{status: http.StatusOK}, user)
+
+	rec := doJSON(t, mux, http.MethodPost, "/v1/decks/"+uuid.NewString()+"/import", map[string]string{})
+
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
 }

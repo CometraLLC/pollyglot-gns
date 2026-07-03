@@ -2,8 +2,10 @@ package decks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -35,6 +37,8 @@ func RegisterRoutes(r chi.Router, h Handler) {
 			r.Get("/cards", h.ListCards)
 			r.Post("/cards", h.CreateCard)
 			r.Get("/queue", h.GetStudyQueue)
+			r.Get("/export", h.ExportDeck)
+			r.Post("/import", h.ImportDeck)
 		})
 	})
 
@@ -292,4 +296,68 @@ func (h Handler) DeleteCard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.ResponseJSON(w, status, map[string]string{"message": "Card deleted"})
+}
+
+func (h Handler) ExportDeck(w http.ResponseWriter, r *http.Request) {
+	uid, ok := userID(w, r)
+	if !ok {
+		return
+	}
+	deckID, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+	format := r.URL.Query().Get("format")
+	if format == "" {
+		format = "csv"
+	}
+
+	filename, content, status, err := h.service.ExportDeck(r.Context(), uid, deckID, format)
+	if err != nil {
+		response.ResponseError(w, status, err.Error())
+		return
+	}
+
+	contentType := "text/csv; charset=utf-8"
+	if format == "tsv" {
+		contentType = "text/tab-separated-values; charset=utf-8"
+	}
+	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", filename))
+	w.WriteHeader(status)
+	_, _ = w.Write([]byte(content))
+}
+
+func (h Handler) ImportDeck(w http.ResponseWriter, r *http.Request) {
+	uid, ok := userID(w, r)
+	if !ok {
+		return
+	}
+	deckID, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		response.ResponseError(w, http.StatusBadRequest, "Missing file upload field \"file\"")
+		return
+	}
+	defer func() { _ = file.Close() }()
+
+	format := r.URL.Query().Get("format")
+	if format == "" {
+		if strings.HasSuffix(strings.ToLower(header.Filename), ".tsv") {
+			format = "tsv"
+		} else {
+			format = "csv"
+		}
+	}
+
+	result, status, err := h.service.ImportDeck(r.Context(), uid, deckID, file, format)
+	if err != nil {
+		response.ResponseError(w, status, err.Error())
+		return
+	}
+	response.ResponseJSON(w, status, result)
 }
