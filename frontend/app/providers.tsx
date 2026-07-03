@@ -65,18 +65,6 @@ export function Providers({ children }: { children: ReactNode }) {
                         <div className={`h-full ${isDark ? 'bg-white' : 'bg-gray-900'} rounded-full animate-loading-bar`} />
                     </div>
                 </div>
-
-                {/* Animation Styles */}
-                <style jsx>{`
-                    @keyframes loading-bar {
-                        0% { width: 0%; transform: translateX(0); }
-                        50% { width: 70%; }
-                        100% { width: 100%; transform: translateX(0); }
-                    }
-                    .animate-loading-bar {
-                        animation: loading-bar 1.5s ease-in-out infinite;
-                    }
-                `}</style>
             </div>
         );
     }
