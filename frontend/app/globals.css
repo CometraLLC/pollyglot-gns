@@ -3,9 +3,9 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: 240 10% 3.9%;
+  --background: 240 6% 14%;
   --foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
+  --card: 240 6% 16%;
   --card-foreground: 0 0% 98%;
   --popover: 240 10% 3.9%;
   --popover-foreground: 0 0% 98%;
@@ -34,9 +34,9 @@
 }
 
 .light {
-  --background: 0 0% 100%;
+  --background: 220 18% 90%;
   --foreground: 240 10% 3.9%;
-  --card: 0 0% 100%;
+  --card: 220 18% 91%;
   --card-foreground: 240 10% 3.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 240 10% 3.9%;
@@ -144,3 +144,83 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* ─── Neumorphic surface system (Pollyglot#27, decision D-018) ───────────
+   Soft-UI shadows honoring the original Pollyglot repo. Each theme gets
+   its own tuned shadow pair — never an automatic flip. Text keeps the
+   standard foreground tokens so contrast stays AA. */
+
+:root {
+  /* dark theme pair */
+  --neu-hi: oklch(52% 0.014 255deg / 0.28);
+  --neu-lo: oklch(12% 0.01 255deg / 0.72);
+}
+
+.light {
+  /* light theme pair (classic #e0e5ec neumorphism) */
+  --neu-hi: #ffffff;
+  --neu-lo: #b8bec7;
+}
+
+.neu-card {
+  border-radius: 1rem;
+  border: 1px solid transparent;
+  background: hsl(var(--card));
+  box-shadow:
+    6px 6px 12px var(--neu-lo),
+    -6px -6px 12px var(--neu-hi);
+}
+
+.neu-card-sm {
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+  background: hsl(var(--card));
+  box-shadow:
+    3px 3px 7px var(--neu-lo),
+    -3px -3px 7px var(--neu-hi);
+}
+
+/* interactive raised surface: lifts on hover, presses in on activation */
+.neu-interactive {
+  transition: box-shadow 200ms ease;
+}
+.neu-interactive:hover {
+  box-shadow:
+    8px 8px 16px var(--neu-lo),
+    -8px -8px 16px var(--neu-hi);
+}
+.neu-interactive:active {
+  box-shadow:
+    inset 4px 4px 8px var(--neu-lo),
+    inset -4px -4px 8px var(--neu-hi);
+}
+
+/* recessed panel — empty states, wells, chat canvas */
+.neu-inset {
+  border: 1px solid transparent;
+  background: hsl(var(--background));
+  box-shadow:
+    inset 4px 4px 8px var(--neu-lo),
+    inset -4px -4px 8px var(--neu-hi);
+}
+
+/* pill button (rating chips, secondary actions) */
+.neu-btn {
+  border: 1px solid transparent;
+  background: hsl(var(--card));
+  box-shadow:
+    3px 3px 6px var(--neu-lo),
+    -3px -3px 6px var(--neu-hi);
+  transition: box-shadow 150ms ease;
+}
+.neu-btn:hover {
+  box-shadow:
+    4px 4px 9px var(--neu-lo),
+    -4px -4px 9px var(--neu-hi);
+}
+.neu-btn:active {
+  box-shadow:
+    inset 3px 3px 6px var(--neu-lo),
+    inset -3px -3px 6px var(--neu-hi);
+}
+
