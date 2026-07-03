@@ -113,6 +113,9 @@ jobs:
       - name: Start backend (runs migrations + seeds)
         working-directory: backend
         run: |
+          # config.LoadConfig substitutes ${VARS} in init(), before godotenv
+          # runs — export the .env like docker's env_file does locally
+          set -a; source .env; set +a
           go run ./cmd/api/main.go &
           for i in $(seq 1 60); do
             if curl -sf -X POST http://localhost:8080/v1/auth/login \
