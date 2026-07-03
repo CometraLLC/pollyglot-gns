@@ -71,6 +71,7 @@ make dev-down
 | Variable | Effect |
 | -------- | ------ |
 | `SPEECH_PROVIDER=elevenlabs` + `ELEVENLABS_API_KEY` | Tutor messages play with a natural ElevenLabs voice; without it the UI falls back to the browser's built-in speech. |
+| `TRANSLATOR_PROVIDER=google` + `GOOGLE_TRANSLATE_API_KEY` | Translate uses the Google Cloud Translation API; without it the built-in dictionary handles the seeded vocabulary. |
 
 ### Seeded dev account
 

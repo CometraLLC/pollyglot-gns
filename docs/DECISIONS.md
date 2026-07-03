@@ -458,3 +458,26 @@ tutor bubbles always works. Study-card pronunciation stays on browser TTS
 **Why:** The 503-plus-fallback contract makes the premium voice a pure
 enhancement — zero configuration works everywhere, one env var upgrades
 it; and keeping the key behind our API means it never ships to browsers.
+
+## D-023: Google Translate slots behind the existing Translator interface
+
+**Date:** 2026-07-02 (issue Pollyglot#29, requested by Marc)
+
+**Context:** Marc wants real translations. D-014 already split 422 (no
+translation) from 502 (provider broken) precisely so a real provider could
+drop in without touching handlers or UI.
+
+**Decision:** `GoogleTranslator` (Cloud Translation v2, JSON body,
+`format:text` to avoid HTML entities, key server-side) selected by
+`TRANSLATOR_PROVIDER=google` + `GOOGLE_TRANSLATE_API_KEY`; keyless or
+unknown values fall back to the dictionary with a startup warning. Human
+language names map to ISO-639-1 through a pure `LanguageCode` function;
+unmappable languages return `ErrNoTranslation` *before any request leaves
+the process*. Tests run against an httptest stub pinning the request
+shape and error mapping.
+
+**Why:** The name→code mapping is the one place user vocabulary meets the
+Google API contract, so it's pure and table-tested; refusing unmappable
+languages locally keeps quota for real requests and keeps the 422/502
+split honest; and zero changes were needed in the service, handler, or UI
+— which is exactly what D-014 promised.
