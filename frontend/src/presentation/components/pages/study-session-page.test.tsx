@@ -176,6 +176,49 @@ describe('StudySessionPage', () => {
 		expect(screen.getByRole('link', { name: /back to decks/i })).toBeInTheDocument()
 	})
 
+	it('blanks cloze deletions on the front and reveals them on flip', async () => {
+		const user = userEvent.setup()
+		mocked.getStudyQueue.mockResolvedValue([
+			card({ card_type: 'cloze', front: '水を{{c1::飲みます}}', back: 'drink water' }),
+		])
+
+		renderPage()
+
+		expect(await screen.findByText('水を[…]')).toBeInTheDocument()
+		expect(screen.queryByText('水を飲みます')).not.toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: /show answer/i }))
+
+		expect(screen.getByText('水を飲みます')).toBeInTheDocument()
+		expect(screen.getByText('drink water')).toBeInTheDocument()
+	})
+
+	it('offers pronunciation when the browser can speak', async () => {
+		const speakMock = vi.fn()
+		vi.stubGlobal('speechSynthesis', { speak: speakMock, cancel: vi.fn() })
+		vi.stubGlobal(
+			'SpeechSynthesisUtterance',
+			class {
+				text: string
+				lang = ''
+				constructor(text: string) {
+					this.text = text
+				}
+			}
+		)
+		const user = userEvent.setup()
+		mocked.getStudyQueue.mockResolvedValue(twoCards)
+
+		renderPage()
+
+		await user.click(await screen.findByRole('button', { name: /pronounce/i }))
+
+		expect(speakMock).toHaveBeenCalledTimes(1)
+		expect(speakMock.mock.calls[0][0].text).toBe('こんにちは')
+		expect(speakMock.mock.calls[0][0].lang).toBe('ja-JP')
+		vi.unstubAllGlobals()
+	})
+
 	it('stays on the card and surfaces an error when the review fails', async () => {
 		const user = userEvent.setup()
 		mocked.getStudyQueue.mockResolvedValue(twoCards)

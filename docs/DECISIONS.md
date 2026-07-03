@@ -412,3 +412,28 @@ un-meet it.
 gets decided — a second request per deck would just be latency; a full
 settings module for one integer is ceremony, and the stats module already
 owns the review-count context that gives the goal meaning.
+
+## D-021: Reverse is card duplication; cloze is a card type; pronunciation is browser TTS
+
+**Date:** 2026-07-02 (issue Pollyglot#23)
+
+**Context:** "Richer cards" could mean per-direction SRS state on one card
+(Anki's note/card split), a template system, or server-side audio.
+
+**Decision:** Three deliberately-small mechanisms. **Reverse** is a
+create-time option that persists a second, independent basic card with
+mirrored front/back and fresh SRS state — no schema change, each direction
+schedules on its own; rejected for cloze. **Cloze** is a `card_type`
+('basic'|'cloze', DB CHECK) with Anki-syntax `{{c1::…}}` markers parsed by
+twin pure-function libraries (`backend/pkg/cloze` ↔ `frontend/src/lib/
+cloze.ts`, same table tests both sides); creation requires ≥1 well-formed
+deletion. **Pronunciation** is the browser SpeechSynthesis API
+(feature-detected, language-name → BCP-47 mapping) — zero backend, and the
+upcoming ElevenLabs provider (Pollyglot#28) slots in as the premium path
+with this as the fallback.
+
+**Why:** Duplication gives reverse cards correct independent scheduling
+for free, exactly what a per-direction state machine would have bought at
+10× the complexity; a type column keeps cloze additive (existing cards
+untouched); and mirrored parser implementations with identical test tables
+keep the one format that crosses the API boundary honest on both sides.

@@ -21,8 +21,11 @@ type UpdateDeckRequest struct {
 }
 
 type CreateCardRequest struct {
-	Front string `json:"front" validate:"required,max=2000"`
-	Back  string `json:"back" validate:"required,max=2000"`
+	Front    string `json:"front" validate:"required,max=2000"`
+	Back     string `json:"back" validate:"required,max=2000"`
+	CardType string `json:"card_type" validate:"omitempty,oneof=basic cloze"`
+	// Reverse also creates a mirrored (back→front) card. Basic cards only.
+	Reverse bool `json:"reverse"`
 }
 
 type UpdateCardRequest struct {
@@ -54,6 +57,7 @@ type CardResponse struct {
 	DeckID       uuid.UUID `json:"deck_id"`
 	Front        string    `json:"front"`
 	Back         string    `json:"back"`
+	CardType     string    `json:"card_type"`
 	EaseFactor   float64   `json:"ease_factor"`
 	IntervalDays int       `json:"interval_days"`
 	Repetitions  int       `json:"repetitions"`
