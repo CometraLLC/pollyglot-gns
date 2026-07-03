@@ -57,6 +57,7 @@ export const DeckFactory = createFactory<Deck>((i) => ({
 	source_lang: 'Japanese',
 	target_lang: 'English',
 	card_count: 3,
+	due_count: 0,
 	created_at: '2026-07-01T00:00:00Z',
 	updated_at: '2026-07-01T00:00:00Z',
 }))

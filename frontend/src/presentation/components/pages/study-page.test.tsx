@@ -36,6 +36,14 @@ describe('StudyPage (deck picker)', () => {
 		)
 	})
 
+	it('shows how many cards are due per deck', async () => {
+		mocked.listDecks.mockResolvedValue([DeckFactory.build({ id: 'deck-1', due_count: 3 })])
+
+		renderPage()
+
+		expect(await screen.findByText('3 due')).toBeInTheDocument()
+	})
+
 	it('points at deck creation when there is nothing to study', async () => {
 		mocked.listDecks.mockResolvedValue([])
 

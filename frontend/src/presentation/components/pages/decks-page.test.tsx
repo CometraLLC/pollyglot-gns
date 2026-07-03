@@ -43,6 +43,18 @@ describe('DecksPage', () => {
 		expect(screen.getByText(/1 card\b/)).toBeInTheDocument()
 	})
 
+	it('shows a due badge only when cards are due', async () => {
+		mocked.listDecks.mockResolvedValue([
+			deck({ due_count: 4 }),
+			deck({ id: 'deck-2', name: 'Spanish Verbs', due_count: 0 }),
+		])
+
+		renderPage()
+
+		expect(await screen.findByText('4 due')).toBeInTheDocument()
+		expect(screen.queryByText('0 due')).not.toBeInTheDocument()
+	})
+
 	it('shows an empty state inviting the first deck', async () => {
 		mocked.listDecks.mockResolvedValue([])
 

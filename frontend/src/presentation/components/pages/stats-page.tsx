@@ -1,10 +1,104 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { Flame, CalendarCheck, Library, BookMarked } from 'lucide-react'
+import { Flame, CalendarCheck, Library, BookMarked, PartyPopper } from 'lucide-react'
+import { Button } from '@/src/presentation/components/ui/button'
+import { Input } from '@/src/presentation/components/ui/input'
+import { Label } from '@/src/presentation/components/ui/label'
 import { statsService } from '@/src/domain/services/stats.service'
+import type { Stats } from '@/src/domain/services/stats.service'
 import type { LucideIcon } from 'lucide-react'
+
+function DailyGoal({ stats }: { stats: Stats }) {
+	const queryClient = useQueryClient()
+	const [editing, setEditing] = useState(false)
+	const [draft, setDraft] = useState(String(stats.daily_goal))
+	const setGoal = useMutation({
+		mutationFn: (goal: number) => statsService.setGoal(goal),
+		onSuccess: () => {
+			setEditing(false)
+			queryClient.invalidateQueries({ queryKey: ['stats'] })
+		},
+	})
+
+	const met = stats.reviews_today >= stats.daily_goal
+	const percent = Math.min(100, (stats.reviews_today / stats.daily_goal) * 100)
+
+	const save = (e: React.FormEvent) => {
+		e.preventDefault()
+		const goal = Number(draft)
+		if (!Number.isInteger(goal) || goal < 1 || goal > 500) return
+		setGoal.mutate(goal)
+	}
+
+	return (
+		<div className='neu-card mb-8 p-6'>
+			<div className='mb-3 flex items-center justify-between'>
+				<h2 className='text-sm font-semibold'>Daily goal</h2>
+				{!editing && (
+					<Button variant='ghost' size='sm' onClick={() => setEditing(true)}>
+						Change goal
+					</Button>
+				)}
+			</div>
+
+			{met ? (
+				<p className='mb-3 flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400'>
+					<PartyPopper className='h-4 w-4' aria-hidden />
+					Goal met — {stats.reviews_today} / {stats.daily_goal} reviews today
+				</p>
+			) : (
+				<p className='mb-3 text-sm text-muted-foreground'>
+					{stats.reviews_today} / {stats.daily_goal} reviews today
+				</p>
+			)}
+
+			<div
+				role='progressbar'
+				aria-label='Daily goal progress'
+				aria-valuenow={stats.reviews_today}
+				aria-valuemin={0}
+				aria-valuemax={stats.daily_goal}
+				className='neu-inset h-3 overflow-hidden rounded-full'
+			>
+				<div
+					className='h-full rounded-full bg-emerald-600 transition-[width] duration-500 dark:bg-emerald-500'
+					style={{ width: `${percent}%` }}
+				/>
+			</div>
+
+			{editing && (
+				<form onSubmit={save} className='mt-4 flex items-end gap-2'>
+					<div className='space-y-2'>
+						<Label htmlFor='daily-goal'>Reviews per day</Label>
+						<Input
+							id='daily-goal'
+							type='number'
+							min={1}
+							max={500}
+							value={draft}
+							onChange={(e) => setDraft(e.target.value)}
+							className='w-32'
+						/>
+					</div>
+					<Button type='submit' disabled={setGoal.isPending}>
+						Save goal
+					</Button>
+					<Button type='button' variant='ghost' onClick={() => setEditing(false)}>
+						Cancel
+					</Button>
+				</form>
+			)}
+			{setGoal.isError && (
+				<p className='mt-2 text-sm text-red-600 dark:text-red-400'>
+					Could not save the goal. Try again.
+				</p>
+			)}
+		</div>
+	)
+}
 
 function StatTile({
 	icon: Icon,
@@ -52,6 +146,7 @@ export function StatsPage() {
 
 			{data && (
 				<>
+					<DailyGoal stats={data} />
 					<div className='mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
 						<StatTile icon={Flame} label='Day streak' value={data.streak_days} />
 						<StatTile icon={CalendarCheck} label='Reviews today' value={data.reviews_today} />
