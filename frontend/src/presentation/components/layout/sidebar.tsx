@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import {
-    X, LayoutDashboard, User, Settings, Languages,
+    X, LayoutDashboard, User, Settings, Languages, Layers, GraduationCap,
+    ArrowLeftRight, MessagesSquare, TrendingUp,
     Shield, LogOut, Users, ShieldCheck, Key, AlertTriangle, BookOpen
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { SidebarItem, SidebarMenuItem } from './sidebar-item'
 import { cn } from '@/src/lib/utils'
 import { Button } from '@/src/presentation/components/ui/button'
@@ -29,41 +31,67 @@ interface SidebarProps {
     onClose: () => void
 }
 
+// labels are next-intl keys, resolved by SidebarItem at render time
 const menuItems: SidebarMenuItem[] = [
     {
-        label: 'Home',
+        label: 'nav.home',
         href: '/home',
         icon: LayoutDashboard,
     },
     {
-        label: 'Pollyglot',
+        label: 'nav.pollyglot',
         href: '/pollyglot',
         icon: Languages,
     },
     {
-        label: 'Documentation',
+        label: 'nav.decks',
+        href: '/pollyglot/decks',
+        icon: Layers,
+    },
+    {
+        label: 'nav.study',
+        href: '/pollyglot/study',
+        icon: GraduationCap,
+    },
+    {
+        label: 'nav.translate',
+        href: '/pollyglot/translate',
+        icon: ArrowLeftRight,
+    },
+    {
+        label: 'nav.conversation',
+        href: '/pollyglot/conversation',
+        icon: MessagesSquare,
+    },
+    {
+        label: 'nav.progress',
+        href: '/pollyglot/stats',
+        icon: TrendingUp,
+    },
+    {
+        label: 'nav.documentation',
         href: '/docs',
         icon: BookOpen,
     },
     {
-        label: 'User Management',
+        label: 'nav.userManagement',
         icon: Shield,
         anyRole: ['Super Admin', 'Admin'],
         children: [
             {
-                label: 'Users',
+                label: 'nav.users',
                 href: '/admin/users',
                 icon: Users,
                 permission: 'users.read',
             },
             {
-                label: 'Roles',
+                label: 'nav.roles',
                 href: '/admin/roles',
                 icon: ShieldCheck,
                 permission: 'roles.read',
             },
             {
-                label: 'Permissions',
+                label: 'nav.permissions',
                 href: '/admin/permissions',
                 icon: Key,
                 permission: 'permissions.read',
@@ -74,6 +102,7 @@ const menuItems: SidebarMenuItem[] = [
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const { user, logout } = useAuth()
+    const t = useTranslations()
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
 
     // Get user initials for avatar
@@ -198,13 +227,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-500" />
                         </div>
                         <DialogTitle className="text-center text-xl">
-                            Konfirmasi Logout
+                            {t('auth.logoutConfirmTitle')}
                         </DialogTitle>
                         <DialogDescription className="text-center">
-                            Apakah Anda yakin ingin keluar dari aplikasi?
+                            {t('auth.logoutConfirmDescription')}
                             <br />
                             <span className="text-sm text-muted-foreground mt-2 block">
-                                Anda perlu login kembali untuk mengakses aplikasi.
+                                {t('auth.logoutConfirmNote')}
                             </span>
                         </DialogDescription>
                     </DialogHeader>
@@ -214,7 +243,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             onClick={() => setIsLogoutModalOpen(false)}
                             className="w-full sm:w-auto"
                         >
-                            Batal
+                            {t('auth.logoutConfirmCancel')}
                         </Button>
                         <Button
                             variant="destructive"
@@ -222,7 +251,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             className="w-full sm:w-auto"
                         >
                             <LogOut className="mr-2 h-4 w-4" />
-                            Ya, Logout
+                            {t('auth.logoutConfirmAction')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

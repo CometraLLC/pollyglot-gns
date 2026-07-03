@@ -313,3 +313,28 @@ ten streak edge cases table-testable; the "yesterday keeps it alive" rule
 matches learner expectations (Duolingo-style) instead of punishing morning
 visits; validated color + a data table keep the chart accessible in both
 themes.
+
+## D-017: i18n covers navigation now; page copy stays English pending a dedicated sweep
+
+**Date:** 2026-07-02 (issue Pollyglot#17)
+
+**Context:** The polish issue asked for next-intl keys on all new pages.
+Surveying the codebase: the starter itself only uses `useTranslations` in
+two components — every other page hardcodes English (and the logout dialog
+hardcoded Indonesian). A full retrofit of nine product pages would churn
+every component test late in the build-out while exceeding the starter's
+own i18n adoption.
+
+**Decision:** Internationalize the shared chrome now — sidebar labels are
+locale keys (`nav.*`) resolved at render, the logout dialog uses `auth.*`
+keys, EN/ID catalogs extended — and enforce catalog health with a
+locale-parity test (both files must define exactly the same key paths; it
+already caught one pre-existing drift). Page-level copy remains English;
+a dedicated i18n sweep is deferred to the next backlog-planning session
+with Marc.
+
+**Why:** Navigation is the highest-visibility string surface and now
+switches languages correctly; the parity test turns missing translations
+into CI failures instead of raw keys in production; and deferring the
+page sweep honestly (documented here) beats a rushed half-translation
+that would still fail the "all pages" bar.

@@ -1,37 +1,33 @@
 <p align="center">
-  <img src="frontend/public/gns.png" alt="GNS" width="120" />
-  <img src="frontend/public/logo_icon.png" alt="GNS" width="120" />
+  <img src="frontend/public/pollyglot.svg" alt="Pollyglot" width="120" />
 </p>
 
-<h1 align="center">GNS — Go + Next.js + shadcn/ui</h1>
+<h1 align="center">Pollyglot 🦜</h1>
 
 <p align="center">
-  A production-ready full-stack starter kit with authentication, role-based access control, i18n, and clean architecture.
+  Learn languages the way memory works — spaced-repetition flashcards,
+  translation you can keep, and a tutor that asks before it answers.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go&logoColor=white" />
+  <img src="https://img.shields.io/badge/Go-1.24-00ADD8?style=flat&logo=go&logoColor=white" />
   <img src="https://img.shields.io/badge/Next.js-16-000000?style=flat&logo=nextdotjs&logoColor=white" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-v4-38BDF8?style=flat&logo=tailwindcss&logoColor=white" />
-  <img src="https://img.shields.io/badge/shadcn/ui-Components-000?style=flat&logo=shadcnui&logoColor=white" />
   <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat&logo=postgresql&logoColor=white" />
   <img src="https://img.shields.io/badge/Redis-7-DC382D?style=flat&logo=redis&logoColor=white" />
 </p>
 
----
+Built by [Cometra](https://github.com/CometraLLC) on the GNS starter kit
+(Go + Next.js + shadcn/ui: JWT auth, RBAC, i18n, clean architecture).
 
 ## ✨ Features
 
-- **JWT Authentication** — Login, register, Google OAuth, token refresh, session management
-- **Role-Based Access Control** — Roles, permissions, and module-level access
-- **Clean Architecture** — Consistent structure on both backend and frontend
-- **Dependency Injection** — uber/dig for automatic wiring on the backend
-- **Internationalization** — English & Indonesian out of the box (next-intl)
-- **Theme System** — Light & dark mode with next-themes + shadcn/ui
-- **Database Migrations** — Auto-run on startup with golang-migrate
-- **Docker Ready** — Development and production Docker Compose configs
-- **API Rate Limiting** — Built-in rate limiter middleware
-- **Security Headers** — HSTS, X-Frame-Options, Content-Type sniffing protection
+- **Decks & flashcards** — per-user decks for each language you learn
+- **Spaced repetition** — SM-2 scheduling; rate a card Forgot → Got it! and it comes back just before you'd lose it
+- **Translate & keep it** — dictionary-backed (pluggable) translation with one-click save-to-deck
+- **Conversation practice** — a Socratic tutor that quotes your words and always ends with a question (pluggable provider, LLM-ready)
+- **Progress** — day streak, reviews per day, unique words, 30-day chart
+- **Platform** (from GNS) — JWT auth + Google OAuth, RBAC, i18n (EN/ID), dark mode, migrations, rate limiting, security headers
 
 ## 🏗️ Tech Stack
 
@@ -44,11 +40,9 @@
 | **i18n**     | next-intl (EN, ID)                               |
 | **DevOps**   | Docker, Docker Compose, Makefile                 |
 
-## 🦜 Pollyglot
+## 📊 Feature status
 
-This repo is being built out into **Pollyglot** — a language-learning app on
-top of the GNS starter. Product surface so far (all under `/pollyglot` after
-signing in):
+All product pages live under `/pollyglot` after signing in:
 
 | Feature | Status | Where |
 | ------- | ------ | ----- |

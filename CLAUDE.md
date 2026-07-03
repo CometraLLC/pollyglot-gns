@@ -74,4 +74,7 @@ Dev sign-in without registering: `demo@pollyglot.dev` / `Password123!`
 - bcrypt cost is 12 — keep password-hash test counts low (each hash ~250ms).
 - air (docker dev) rebuilds only on `.go` changes; `docker restart gns-dev`
   to re-run seeds after editing SQL.
-- Locale files: `frontend/locales/{en,id}.json` (next-intl).
+- Locale files: `frontend/locales/{en,id}.json` (next-intl). Sidebar labels
+  are `nav.*` keys resolved in `SidebarItem`; a locale-parity test
+  (`src/lib/locales.test.ts`) fails if EN/ID key sets drift — add every new
+  key to both files. Page copy is English for now (see D-017).
