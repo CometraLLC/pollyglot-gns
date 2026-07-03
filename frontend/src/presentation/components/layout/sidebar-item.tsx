@@ -6,6 +6,7 @@ import { ChevronDown, LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/src/lib/utils'
 import { usePermission } from '@/src/application/hooks/use-permission'
+import { useTranslations } from 'next-intl'
 
 export interface SidebarMenuItem {
     label: string
@@ -38,7 +39,11 @@ function hasActiveChild(item: SidebarMenuItem, pathname: string): boolean {
 
 export function SidebarItem({ item, level = 0, onNavigate }: SidebarItemProps) {
     const pathname = usePathname()
+    const t = useTranslations()
     const { hasPermission, hasRole, hasAnyRole, isAdmin } = usePermission()
+    // labels that look like i18n keys resolve through next-intl;
+    // plain strings render as-is
+    const label = item.label.includes('.') ? t(item.label) : item.label
 
     const checkAccess = (menuItem: SidebarMenuItem): boolean => {
         // Check admin requirement
@@ -103,7 +108,7 @@ export function SidebarItem({ item, level = 0, onNavigate }: SidebarItemProps) {
                     'h-5 w-5 shrink-0 transition-colors',
                     isActive ? 'text-primary' : 'text-muted-foreground'
                 )} />
-                <span className="truncate">{item.label}</span>
+                <span className="truncate">{label}</span>
             </div>
             {hasChildren && (
                 <ChevronDown
