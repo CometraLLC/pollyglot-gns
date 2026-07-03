@@ -108,7 +108,9 @@ jobs:
               -e 's/^CACHE_HOST=redis/CACHE_HOST=localhost/' \
               -e 's/^REDIS_HOST=redis/REDIS_HOST=localhost/' \
               .env.example > .env
-          cp config/config.template.yaml config/config.development.yaml
+          # the config loader does no env expansion — render real values
+          set -a; source .env; set +a
+          envsubst < config/config.template.yaml > config/config.development.yaml
 
       - name: Start backend (runs migrations + seeds)
         working-directory: backend
