@@ -16,6 +16,8 @@ type Repository interface {
 	GetDayCounts(ctx context.Context, userID uuid.UUID, since time.Time) (map[string]int64, error)
 	CountReviews(ctx context.Context, userID uuid.UUID) (int64, error)
 	CountDistinctCards(ctx context.Context, userID uuid.UUID) (int64, error)
+	GetDailyGoal(ctx context.Context, userID uuid.UUID) (int, error)
+	SetDailyGoal(ctx context.Context, userID uuid.UUID, goal int) error
 }
 
 type repository struct {
@@ -65,4 +67,20 @@ func (r *repository) CountDistinctCards(ctx context.Context, userID uuid.UUID) (
 		Distinct("card_id").
 		Count(&count).Error
 	return count, err
+}
+
+func (r *repository) GetDailyGoal(ctx context.Context, userID uuid.UUID) (int, error) {
+	var goal int
+	err := r.db.WithContext(ctx).
+		Table("users").
+		Where("id = ?", userID).
+		Pluck("daily_goal", &goal).Error
+	return goal, err
+}
+
+func (r *repository) SetDailyGoal(ctx context.Context, userID uuid.UUID, goal int) error {
+	return r.db.WithContext(ctx).
+		Table("users").
+		Where("id = ?", userID).
+		Update("daily_goal", goal).Error
 }
