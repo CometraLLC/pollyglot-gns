@@ -290,3 +290,26 @@ without faking an AI, and gives an LLM provider a behavioral contract to
 meet (the tests document it). Provider-before-persist means a provider
 outage is a clean 502 with no orphaned user message to dedupe later;
 cache-append keeps the chat from flickering on every turn.
+
+## D-016: Stats aggregate in SQL by day; streak logic is a pure function
+
+**Date:** 2026-07-02 (issue Pollyglot#16)
+
+**Context:** Progress needs reviews-per-day (chart), counts, and a streak.
+Streak semantics have edge cases (is a streak "broken" before you study
+today?), and naive row-fetching would pull every review to Go.
+
+**Decision:** The repository does one `GROUP BY` day query (a year back, so
+long streaks survive) plus two counts; `Streak()` and `FillDays()` are pure
+functions — streak counts back from today, or from yesterday when today is
+still unreviewed, so a live streak never displays as broken; future-dated
+noise is ignored. The chart series is always exactly 30 zero-filled days.
+Chart colors were validated with the dataviz six-checks script per surface
+(#059669 light / #0ea371 dark), single hue for a single series, with an
+sr-only table of the same data.
+
+**Why:** SQL aggregation keeps the payload tiny; pure functions made the
+ten streak edge cases table-testable; the "yesterday keeps it alive" rule
+matches learner expectations (Duolingo-style) instead of punishing morning
+visits; validated color + a data table keep the chart accessible in both
+themes.
