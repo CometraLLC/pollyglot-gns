@@ -51,8 +51,13 @@ export function StudyPage() {
 							<p className='text-sm text-muted-foreground'>
 								{deck.source_lang} → {deck.target_lang}
 							</p>
-							<p className='mt-2 text-xs text-muted-foreground'>
+							<p className='mt-2 flex items-center gap-2 text-xs text-muted-foreground'>
 								{deck.card_count} {deck.card_count === 1 ? 'card' : 'cards'}
+								{deck.due_count > 0 && (
+					<span className='rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400'>
+						{deck.due_count} due
+					</span>
+				)}
 							</p>
 						</Link>
 					))}

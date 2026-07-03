@@ -6,10 +6,18 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"github.com/base-go/backend/pkg/validator"
 )
+
+type SetGoalRequest struct {
+	// pointer so 0 is caught by validation rather than treated as absent
+	Goal *int `json:"goal" validate:"required,gte=1,lte=500"`
+}
 
 type StatsResponse struct {
 	ReviewsToday  int64      `json:"reviews_today"`
+	DailyGoal     int        `json:"daily_goal"`
 	TotalReviews  int64      `json:"total_reviews"`
 	UniqueCards   int64      `json:"unique_cards"`
 	StreakDays    int        `json:"streak_days"`
@@ -18,6 +26,7 @@ type StatsResponse struct {
 
 type Service interface {
 	GetStats(ctx context.Context, userID uuid.UUID) (*StatsResponse, int, error)
+	SetDailyGoal(ctx context.Context, userID uuid.UUID, req SetGoalRequest) (int, error)
 }
 
 type service struct {
@@ -49,6 +58,11 @@ func (s *service) GetStats(ctx context.Context, userID uuid.UUID) (*StatsRespons
 		return nil, http.StatusInternalServerError, err
 	}
 
+	dailyGoal, err := s.repo.GetDailyGoal(ctx, userID)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
 	days := make(map[string]bool, len(dayCounts))
 	for date, count := range dayCounts {
 		if count > 0 {
@@ -58,9 +72,21 @@ func (s *service) GetStats(ctx context.Context, userID uuid.UUID) (*StatsRespons
 
 	return &StatsResponse{
 		ReviewsToday:  dayCounts[now.Format(dayFormat)],
+		DailyGoal:     dailyGoal,
 		TotalReviews:  totalReviews,
 		UniqueCards:   uniqueCards,
 		StreakDays:    Streak(days, now),
 		ReviewsPerDay: FillDays(dayCounts, now, chartDays),
 	}, http.StatusOK, nil
+}
+
+func (s *service) SetDailyGoal(ctx context.Context, userID uuid.UUID, req SetGoalRequest) (int, error) {
+	if err := validator.ValidateStruct(req); err != nil {
+		return http.StatusBadRequest, err
+	}
+
+	if err := s.repo.SetDailyGoal(ctx, userID, *req.Goal); err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, nil
 }

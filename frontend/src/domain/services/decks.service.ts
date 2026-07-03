@@ -6,6 +6,7 @@ export interface Deck {
   source_lang: string;
   target_lang: string;
   card_count: number;
+  due_count: number;
   created_at: string;
   updated_at: string;
 }

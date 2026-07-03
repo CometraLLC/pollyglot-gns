@@ -50,7 +50,7 @@ All product pages live under `/pollyglot` after signing in:
 | Spaced-repetition study (SM-2) | ✅ | `/pollyglot/study`, API `/v1/cards/{id}/review` + `/v1/decks/{id}/queue` |
 | Translate (dictionary provider, save-to-deck) | ✅ | `/pollyglot/translate`, API `/v1/translate` |
 | Conversation practice (Socratic tutor) | ✅ | `/pollyglot/conversation`, API `/v1/conversations` |
-| Progress & stats (streak, 30-day chart) | ✅ | `/pollyglot/stats`, API `/v1/stats` |
+| Progress & stats (streak, 30-day chart, daily goal) | ✅ | `/pollyglot/stats`, API `/v1/stats` |
 
 Every engineering decision is logged with rationale in
 [`docs/DECISIONS.md`](docs/DECISIONS.md). Work is issue-driven on

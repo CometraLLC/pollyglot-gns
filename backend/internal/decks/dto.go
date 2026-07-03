@@ -44,6 +44,7 @@ type DeckResponse struct {
 	SourceLang string    `json:"source_lang"`
 	TargetLang string    `json:"target_lang"`
 	CardCount  int64     `json:"card_count"`
+	DueCount   int64     `json:"due_count"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
 }

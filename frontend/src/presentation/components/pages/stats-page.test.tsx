@@ -6,6 +6,7 @@ import { StatsPage } from './stats-page'
 vi.mock('@/src/domain/services/stats.service', () => ({
 	statsService: {
 		getStats: vi.fn(),
+		setGoal: vi.fn(),
 	},
 }))
 
@@ -33,6 +34,7 @@ const mocked = vi.mocked(statsService)
 function stats(overrides: Partial<Stats> = {}): Stats {
 	return {
 		reviews_today: 5,
+		daily_goal: 20,
 		total_reviews: 42,
 		unique_cards: 17,
 		streak_days: 3,
@@ -60,6 +62,42 @@ describe('StatsPage', () => {
 		expect(screen.getByLabelText(/reviews today: 5/i)).toHaveTextContent('5')
 		expect(screen.getByLabelText(/total reviews: 42/i)).toHaveTextContent('42')
 		expect(screen.getByLabelText(/unique words: 17/i)).toHaveTextContent('17')
+	})
+
+	it('shows progress toward the daily goal', async () => {
+		mocked.getStats.mockResolvedValue(stats({ reviews_today: 5, daily_goal: 20 }))
+
+		renderPage()
+
+		expect(await screen.findByText(/5 \/ 20/)).toBeInTheDocument()
+		const bar = screen.getByRole('progressbar', { name: /daily goal/i })
+		expect(bar).toHaveAttribute('aria-valuenow', '5')
+		expect(bar).toHaveAttribute('aria-valuemax', '20')
+	})
+
+	it('celebrates when the goal is met', async () => {
+		mocked.getStats.mockResolvedValue(stats({ reviews_today: 25, daily_goal: 20 }))
+
+		renderPage()
+
+		expect(await screen.findByText(/goal met/i)).toBeInTheDocument()
+	})
+
+	it('edits the daily goal', async () => {
+		const { default: userEvent } = await import('@testing-library/user-event')
+		const user = userEvent.setup()
+		mocked.getStats.mockResolvedValue(stats())
+		mocked.setGoal.mockResolvedValue(undefined)
+
+		renderPage()
+
+		await user.click(await screen.findByRole('button', { name: /change goal/i }))
+		const input = screen.getByRole('spinbutton', { name: /reviews per day/i })
+		await user.clear(input)
+		await user.type(input, '35')
+		await user.click(screen.getByRole('button', { name: /save goal/i }))
+
+		await vi.waitFor(() => expect(mocked.setGoal).toHaveBeenCalledWith(35))
 	})
 
 	it('offers the daily series as an accessible table', async () => {
