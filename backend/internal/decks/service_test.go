@@ -447,6 +447,98 @@ func TestCreateCard(t *testing.T) {
 		assert.Empty(t, repo.cards)
 	})
 
+	t.Run("creates a cloze card when deletions are present", func(t *testing.T) {
+		repo := newFakeRepo()
+		deck := seedDeck(repo, userID)
+		svc := NewService(repo)
+
+		resp, status, err := svc.CreateCard(context.Background(), userID, deck.ID, CreateCardRequest{
+			Front: "水を{{c1::飲みます}}", Back: "drink water", CardType: "cloze",
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusCreated, status)
+		assert.Equal(t, "cloze", resp.CardType)
+	})
+
+	t.Run("rejects a cloze card without deletions", func(t *testing.T) {
+		repo := newFakeRepo()
+		deck := seedDeck(repo, userID)
+		svc := NewService(repo)
+
+		_, status, err := svc.CreateCard(context.Background(), userID, deck.ID, CreateCardRequest{
+			Front: "no markers here", Back: "b", CardType: "cloze",
+		})
+
+		require.Error(t, err)
+		assert.Equal(t, http.StatusBadRequest, status)
+		assert.Empty(t, repo.cards)
+	})
+
+	t.Run("rejects an unknown card type", func(t *testing.T) {
+		repo := newFakeRepo()
+		deck := seedDeck(repo, userID)
+		svc := NewService(repo)
+
+		_, status, err := svc.CreateCard(context.Background(), userID, deck.ID, CreateCardRequest{
+			Front: "a", Back: "b", CardType: "audio",
+		})
+
+		require.Error(t, err)
+		assert.Equal(t, http.StatusBadRequest, status)
+	})
+
+	t.Run("defaults to a basic card", func(t *testing.T) {
+		repo := newFakeRepo()
+		deck := seedDeck(repo, userID)
+		svc := NewService(repo)
+
+		resp, _, err := svc.CreateCard(context.Background(), userID, deck.ID, CreateCardRequest{
+			Front: "ねこ", Back: "cat",
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, "basic", resp.CardType)
+	})
+
+	t.Run("reverse also creates the mirrored card", func(t *testing.T) {
+		repo := newFakeRepo()
+		deck := seedDeck(repo, userID)
+		svc := NewService(repo)
+
+		resp, status, err := svc.CreateCard(context.Background(), userID, deck.ID, CreateCardRequest{
+			Front: "ねこ", Back: "cat", Reverse: true,
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusCreated, status)
+		assert.Equal(t, "ねこ", resp.Front)
+
+		require.Len(t, repo.cards, 2)
+		var mirrored bool
+		for _, c := range repo.cards {
+			if c.Front == "cat" && c.Back == "ねこ" {
+				mirrored = true
+				assert.InDelta(t, 2.5, c.EaseFactor, 0.0001, "mirror starts with fresh SRS state")
+			}
+		}
+		assert.True(t, mirrored, "the reversed card must exist")
+	})
+
+	t.Run("reverse is rejected for cloze cards", func(t *testing.T) {
+		repo := newFakeRepo()
+		deck := seedDeck(repo, userID)
+		svc := NewService(repo)
+
+		_, status, err := svc.CreateCard(context.Background(), userID, deck.ID, CreateCardRequest{
+			Front: "{{c1::猫}}が好き", Back: "b", CardType: "cloze", Reverse: true,
+		})
+
+		require.Error(t, err)
+		assert.Equal(t, http.StatusBadRequest, status)
+		assert.Empty(t, repo.cards)
+	})
+
 	t.Run("rejects empty front or back", func(t *testing.T) {
 		repo := newFakeRepo()
 		deck := seedDeck(repo, userID)

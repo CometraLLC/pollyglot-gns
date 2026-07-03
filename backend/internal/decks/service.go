@@ -10,12 +10,15 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/base-go/backend/internal/shared/models"
+	"github.com/base-go/backend/pkg/cloze"
 	"github.com/base-go/backend/pkg/validator"
 )
 
 var (
-	ErrDeckNotFound = errors.New("deck not found")
-	ErrCardNotFound = errors.New("card not found")
+	ErrDeckNotFound       = errors.New("deck not found")
+	ErrCardNotFound       = errors.New("card not found")
+	ErrClozeNeedsDeletion = errors.New("cloze cards need at least one {{c1::...}} deletion")
+	ErrReverseCloze       = errors.New("reverse copies are only supported for basic cards")
 )
 
 type Service interface {
@@ -95,6 +98,7 @@ func cardResponse(card *models.Card) *CardResponse {
 		DeckID:       card.DeckID,
 		Front:        card.Front,
 		Back:         card.Back,
+		CardType:     card.CardType,
 		EaseFactor:   card.EaseFactor,
 		IntervalDays: card.IntervalDays,
 		Repetitions:  card.Repetitions,
@@ -205,10 +209,24 @@ func (s *service) CreateCard(ctx context.Context, userID, deckID uuid.UUID, req 
 		return nil, http.StatusBadRequest, err
 	}
 
+	cardType := req.CardType
+	if cardType == "" {
+		cardType = models.CardTypeBasic
+	}
+	if cardType == models.CardTypeCloze {
+		if req.Reverse {
+			return nil, http.StatusBadRequest, ErrReverseCloze
+		}
+		if len(cloze.Deletions(req.Front)) == 0 {
+			return nil, http.StatusBadRequest, ErrClozeNeedsDeletion
+		}
+	}
+
 	card := &models.Card{
 		DeckID:       deckID,
 		Front:        req.Front,
 		Back:         req.Back,
+		CardType:     cardType,
 		EaseFactor:   2.5,
 		IntervalDays: 0,
 		Repetitions:  0,
@@ -217,6 +235,23 @@ func (s *service) CreateCard(ctx context.Context, userID, deckID uuid.UUID, req 
 	if err := s.repo.CreateCard(ctx, card); err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
+
+	if req.Reverse {
+		mirror := &models.Card{
+			DeckID:       deckID,
+			Front:        req.Back,
+			Back:         req.Front,
+			CardType:     models.CardTypeBasic,
+			EaseFactor:   2.5,
+			IntervalDays: 0,
+			Repetitions:  0,
+			DueAt:        time.Now(),
+		}
+		if err := s.repo.CreateCard(ctx, mirror); err != nil {
+			return nil, http.StatusInternalServerError, err
+		}
+	}
+
 	return cardResponse(card), http.StatusCreated, nil
 }
 
