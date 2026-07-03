@@ -481,3 +481,27 @@ Google API contract, so it's pure and table-tested; refusing unmappable
 languages locally keeps quota for real requests and keeps the 422/502
 split honest; and zero changes were needed in the service, handler, or UI
 — which is exactly what D-014 promised.
+
+## D-024: Import/export is CSV/TSV with per-row error reporting
+
+**Date:** 2026-07-02 (issue Pollyglot#24)
+
+**Context:** Bulk vocabulary needs a way in and out. Anki compatibility
+matters (TSV), and imports of hand-edited files will contain bad rows.
+
+**Decision:** Pure serializer/parser functions in the decks module
+(stdlib encoding/csv, comma or tab): header row `front,back,card_type`
+with the type column optional on import; malformed rows are skipped and
+reported with 1-indexed line numbers (header counted, so numbers match
+the user's editor) while good rows import; whole-file failures only for
+unknown formats and the 1000-row cap. Imported cards always start with
+fresh SRS state. A round-trip property test pins export→import fidelity.
+Live verification caught that the router's global
+`AllowContentType("application/json")` middleware 415'd multipart
+uploads — now allows `multipart/form-data`.
+
+**Why:** Skip-and-report beats all-or-nothing for hand-edited files (one
+typo shouldn't block 300 words) while the row cap bounds abuse; fresh SRS
+state on import is honest (we don't know the source app's scheduler); and
+the 415 catch is the standing argument for live-verifying every feature
+against the real stack.

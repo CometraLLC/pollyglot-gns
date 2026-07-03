@@ -3,6 +3,7 @@ package decks
 import (
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"time"
 
@@ -35,6 +36,9 @@ type Service interface {
 
 	ReviewCard(ctx context.Context, userID, cardID uuid.UUID, req ReviewCardRequest) (*CardResponse, int, error)
 	GetStudyQueue(ctx context.Context, userID, deckID uuid.UUID, limit int) ([]CardResponse, int, error)
+
+	ExportDeck(ctx context.Context, userID, deckID uuid.UUID, format string) (filename, content string, status int, err error)
+	ImportDeck(ctx context.Context, userID, deckID uuid.UUID, file io.Reader, format string) (*ImportResult, int, error)
 }
 
 type service struct {

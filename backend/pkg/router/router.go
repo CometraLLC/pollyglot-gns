@@ -41,7 +41,7 @@ func SetupRoutes(
 	mux.Use(cmiddleware.NoCache)
 	mux.Use(cmiddleware.GetHead)
 	mux.Use(cmiddleware.Compress(zlib.BestCompression))
-	mux.Use(cmiddleware.AllowContentType("application/json"))
+	mux.Use(cmiddleware.AllowContentType("application/json", "multipart/form-data"))
 	mux.Use(secure.New(secure.Options{
 		FrameDeny:            true,
 		ContentTypeNosniff:   true,
