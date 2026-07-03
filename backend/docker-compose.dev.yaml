@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: gns-postgres-dev
     environment:
       POSTGRES_USER: ${DB_USER:-gns_user}
@@ -11,7 +11,7 @@ services:
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data-18:/var/lib/postgresql
     networks:
       - app-network
     restart: unless-stopped
@@ -68,4 +68,5 @@ networks:
 volumes:
   go-mod-cache:
   postgres-data:
+  postgres-data-18:
   redis-data:
