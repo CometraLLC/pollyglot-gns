@@ -137,3 +137,65 @@ func (f *ReviewFactory) WithUserID(id uuid.UUID) *ReviewFactory { f.review.UserI
 func (f *ReviewFactory) WithRating(rating int) *ReviewFactory   { f.review.Rating = rating; return f }
 func (f *ReviewFactory) ReviewedAt(t time.Time) *ReviewFactory  { f.review.ReviewedAt = t; return f }
 func (f *ReviewFactory) Build() models.Review                   { return f.review }
+
+// --- ConversationFactory ---
+
+type ConversationFactory struct {
+	conversation models.Conversation
+}
+
+func Conversation() *ConversationFactory {
+	now := time.Now()
+	return &ConversationFactory{conversation: models.Conversation{
+		ID:        uuid.New(),
+		UserID:    uuid.New(),
+		Title:     "Practice Japanese",
+		Language:  "Japanese",
+		CreatedAt: now,
+		UpdatedAt: now,
+	}}
+}
+
+func (f *ConversationFactory) WithID(id uuid.UUID) *ConversationFactory {
+	f.conversation.ID = id
+	return f
+}
+func (f *ConversationFactory) WithUserID(id uuid.UUID) *ConversationFactory {
+	f.conversation.UserID = id
+	return f
+}
+func (f *ConversationFactory) WithLanguage(language string) *ConversationFactory {
+	f.conversation.Language = language
+	return f
+}
+func (f *ConversationFactory) Build() models.Conversation { return f.conversation }
+
+// --- MessageFactory ---
+
+type MessageFactory struct {
+	message models.ConversationMessage
+}
+
+func Message() *MessageFactory {
+	return &MessageFactory{message: models.ConversationMessage{
+		ID:             uuid.New(),
+		ConversationID: uuid.New(),
+		Role:           models.RoleUser,
+		Content:        "こんにちは!",
+		CreatedAt:      time.Now(),
+	}}
+}
+
+func (f *MessageFactory) WithConversationID(id uuid.UUID) *MessageFactory {
+	f.message.ConversationID = id
+	return f
+}
+func (f *MessageFactory) FromTutor() *MessageFactory {
+	f.message.Role = models.RoleTutor
+	return f
+}
+func (f *MessageFactory) WithContent(content string) *MessageFactory {
+	f.message.Content = content
+	return f
+}
+func (f *MessageFactory) Build() models.ConversationMessage { return f.message }
