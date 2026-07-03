@@ -39,6 +39,11 @@ type Service interface {
 
 	ExportDeck(ctx context.Context, userID, deckID uuid.UUID, format string) (filename, content string, status int, err error)
 	ImportDeck(ctx context.Context, userID, deckID uuid.UUID, file io.Reader, format string) (*ImportResult, int, error)
+
+	ShareDeck(ctx context.Context, userID, deckID uuid.UUID) (*ShareResponse, int, error)
+	UnshareDeck(ctx context.Context, userID, deckID uuid.UUID) (int, error)
+	GetSharedDeck(ctx context.Context, code string) (*SharedDeckPreview, int, error)
+	CloneSharedDeck(ctx context.Context, userID uuid.UUID, code string) (*DeckResponse, int, error)
 }
 
 type service struct {
@@ -91,6 +96,7 @@ func deckResponse(deck *models.Deck, cardCount, dueCount int64) *DeckResponse {
 		TargetLang: deck.TargetLang,
 		CardCount:  cardCount,
 		DueCount:   dueCount,
+		ShareCode:  deck.ShareCode,
 		CreatedAt:  deck.CreatedAt,
 		UpdatedAt:  deck.UpdatedAt,
 	}

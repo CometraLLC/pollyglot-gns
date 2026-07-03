@@ -35,6 +35,9 @@ type Repository interface {
 
 	GetDueCards(ctx context.Context, deckID uuid.UUID, before time.Time, limit int) ([]models.Card, error)
 	CreateReview(ctx context.Context, review *models.Review) error
+
+	SetShareCode(ctx context.Context, deckID uuid.UUID, code *string) error
+	GetDeckByShareCode(ctx context.Context, code string) (*models.Deck, error)
 }
 
 type repository struct {
@@ -162,4 +165,22 @@ func (r *repository) GetDueCards(ctx context.Context, deckID uuid.UUID, before t
 
 func (r *repository) CreateReview(ctx context.Context, review *models.Review) error {
 	return r.db.WithContext(ctx).Create(review).Error
+}
+
+func (r *repository) SetShareCode(ctx context.Context, deckID uuid.UUID, code *string) error {
+	return r.db.WithContext(ctx).
+		Model(&models.Deck{}).
+		Where("id = ? AND deleted_at IS NULL", deckID).
+		Update("share_code", code).Error
+}
+
+func (r *repository) GetDeckByShareCode(ctx context.Context, code string) (*models.Deck, error) {
+	var deck models.Deck
+	err := r.db.WithContext(ctx).
+		Where("share_code = ? AND deleted_at IS NULL", code).
+		First(&deck).Error
+	if err != nil {
+		return nil, err
+	}
+	return &deck, nil
 }

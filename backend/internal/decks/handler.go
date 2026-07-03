@@ -39,7 +39,14 @@ func RegisterRoutes(r chi.Router, h Handler) {
 			r.Get("/queue", h.GetStudyQueue)
 			r.Get("/export", h.ExportDeck)
 			r.Post("/import", h.ImportDeck)
+			r.Post("/share", h.ShareDeck)
+			r.Delete("/share", h.UnshareDeck)
 		})
+	})
+
+	r.Route("/shared/{code}", func(r chi.Router) {
+		r.Get("/", h.GetSharedDeck)
+		r.Post("/clone", h.CloneSharedDeck)
 	})
 
 	r.Route("/cards", func(r chi.Router) {
@@ -360,4 +367,69 @@ func (h Handler) ImportDeck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.ResponseJSON(w, status, result)
+}
+
+func (h Handler) ShareDeck(w http.ResponseWriter, r *http.Request) {
+	uid, ok := userID(w, r)
+	if !ok {
+		return
+	}
+	deckID, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+
+	resp, status, err := h.service.ShareDeck(r.Context(), uid, deckID)
+	if err != nil {
+		response.ResponseError(w, status, err.Error())
+		return
+	}
+	response.ResponseJSON(w, status, resp)
+}
+
+func (h Handler) UnshareDeck(w http.ResponseWriter, r *http.Request) {
+	uid, ok := userID(w, r)
+	if !ok {
+		return
+	}
+	deckID, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+
+	status, err := h.service.UnshareDeck(r.Context(), uid, deckID)
+	if err != nil {
+		response.ResponseError(w, status, err.Error())
+		return
+	}
+	response.ResponseJSON(w, status, map[string]string{"message": "Sharing disabled"})
+}
+
+func (h Handler) GetSharedDeck(w http.ResponseWriter, r *http.Request) {
+	if _, ok := userID(w, r); !ok {
+		return
+	}
+	code := chi.URLParam(r, "code")
+
+	resp, status, err := h.service.GetSharedDeck(r.Context(), code)
+	if err != nil {
+		response.ResponseError(w, status, err.Error())
+		return
+	}
+	response.ResponseJSON(w, status, resp)
+}
+
+func (h Handler) CloneSharedDeck(w http.ResponseWriter, r *http.Request) {
+	uid, ok := userID(w, r)
+	if !ok {
+		return
+	}
+	code := chi.URLParam(r, "code")
+
+	resp, status, err := h.service.CloneSharedDeck(r.Context(), uid, code)
+	if err != nil {
+		response.ResponseError(w, status, err.Error())
+		return
+	}
+	response.ResponseJSON(w, status, resp)
 }
