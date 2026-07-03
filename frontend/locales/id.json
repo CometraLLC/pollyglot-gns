@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "GNS",
+    "appName": "Pollyglot",
     "welcome": "Selamat Datang",
     "loading": "Memuat...",
     "save": "Simpan",
@@ -29,7 +29,18 @@
     "register": "Daftar",
     "profile": "Profil",
     "preferences": "Preferensi",
-    "admin": "Admin"
+    "admin": "Admin",
+    "pollyglot": "Pollyglot",
+    "decks": "Dek",
+    "study": "Belajar",
+    "translate": "Terjemahkan",
+    "conversation": "Percakapan",
+    "progress": "Kemajuan",
+    "documentation": "Dokumentasi",
+    "userManagement": "Manajemen Pengguna",
+    "users": "Pengguna",
+    "roles": "Peran",
+    "permissions": "Izin"
   },
   "landing": {
     "badge": "Proyek Open Source",
@@ -150,7 +161,12 @@
       "passwordsNotMatch": "Kata sandi tidak cocok",
       "nameRequired": "Nama wajib diisi",
       "termsRequired": "Anda harus menyetujui syarat"
-    }
+    },
+    "logoutConfirmTitle": "Konfirmasi Logout",
+    "logoutConfirmDescription": "Apakah Anda yakin ingin keluar dari aplikasi?",
+    "logoutConfirmNote": "Anda perlu login kembali untuk mengakses aplikasi.",
+    "logoutConfirmCancel": "Batal",
+    "logoutConfirmAction": "Ya, Logout"
   },
   "admin": {
     "title": "Panel Admin",

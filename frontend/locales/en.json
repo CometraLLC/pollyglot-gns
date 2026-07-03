@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "GNS",
+    "appName": "Pollyglot",
     "welcome": "Welcome",
     "loading": "Loading...",
     "save": "Save",
@@ -28,7 +28,19 @@
     "register": "Register",
     "profile": "Profile",
     "preferences": "Preferences",
-    "admin": "Admin"
+    "admin": "Admin",
+    "settings": "Settings",
+    "pollyglot": "Pollyglot",
+    "decks": "Decks",
+    "study": "Study",
+    "translate": "Translate",
+    "conversation": "Conversation",
+    "progress": "Progress",
+    "documentation": "Documentation",
+    "userManagement": "User Management",
+    "users": "Users",
+    "roles": "Roles",
+    "permissions": "Permissions"
   },
   "landing": {
     "badge": "Open Source Base Project",
@@ -149,7 +161,12 @@
       "passwordsNotMatch": "Passwords do not match",
       "nameRequired": "Name is required",
       "termsRequired": "You must agree to the terms"
-    }
+    },
+    "logoutConfirmTitle": "Confirm Logout",
+    "logoutConfirmDescription": "Are you sure you want to sign out?",
+    "logoutConfirmNote": "You will need to sign in again to use the app.",
+    "logoutConfirmCancel": "Cancel",
+    "logoutConfirmAction": "Yes, sign out"
   },
   "admin": {
     "title": "Admin Panel",
