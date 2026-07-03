@@ -36,7 +36,9 @@ type fakeService struct {
 
 	gotFormat    string
 	gotUpload    string
+	gotCode      string
 	importResult *ImportResult
+	previewResp  *SharedDeckPreview
 }
 
 func (f *fakeService) CreateDeck(_ context.Context, userID uuid.UUID, _ CreateDeckRequest) (*DeckResponse, int, error) {
@@ -308,6 +310,70 @@ func TestHandlerStudyQueue(t *testing.T) {
 	rec = doJSON(t, mux, http.MethodGet, "/v1/decks/"+deckID.String()+"/queue?limit=abc", nil)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	assert.Equal(t, 0, svc.gotLimit)
+}
+
+func (f *fakeService) ShareDeck(_ context.Context, userID, deckID uuid.UUID) (*ShareResponse, int, error) {
+	f.gotUserID, f.gotDeckID = userID, deckID
+	return &ShareResponse{ShareCode: "ABCDEF2345"}, f.status, f.err
+}
+
+func (f *fakeService) UnshareDeck(_ context.Context, userID, deckID uuid.UUID) (int, error) {
+	f.gotUserID, f.gotDeckID = userID, deckID
+	return f.status, f.err
+}
+
+func (f *fakeService) GetSharedDeck(_ context.Context, code string) (*SharedDeckPreview, int, error) {
+	f.gotCode = code
+	return f.previewResp, f.status, f.err
+}
+
+func (f *fakeService) CloneSharedDeck(_ context.Context, userID uuid.UUID, code string) (*DeckResponse, int, error) {
+	f.gotUserID, f.gotCode = userID, code
+	return f.deckResp, f.status, f.err
+}
+
+func TestHandlerShareRoutes(t *testing.T) {
+	user, _ := authedUser()
+	deckID := uuid.New()
+	svc := &fakeService{
+		status:      http.StatusOK,
+		deckResp:    &DeckResponse{ID: uuid.New(), Name: "Cloned"},
+		previewResp: &SharedDeckPreview{Name: "Japanese Basics", CardCount: 6},
+	}
+	mux := testRouter(svc, user)
+
+	rec := doJSON(t, mux, http.MethodPost, "/v1/decks/"+deckID.String()+"/share", nil)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	var share ShareResponse
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &share))
+	assert.Equal(t, "ABCDEF2345", share.ShareCode)
+
+	rec = doJSON(t, mux, http.MethodDelete, "/v1/decks/"+deckID.String()+"/share", nil)
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	rec = doJSON(t, mux, http.MethodGet, "/v1/shared/ABCDEF2345", nil)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, "ABCDEF2345", svc.gotCode)
+
+	svc.status = http.StatusCreated
+	rec = doJSON(t, mux, http.MethodPost, "/v1/shared/ABCDEF2345/clone", nil)
+	assert.Equal(t, http.StatusCreated, rec.Code)
+	var clone DeckResponse
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &clone))
+	assert.Equal(t, "Cloned", clone.Name)
+}
+
+func TestHandlerSharedRoutesRequireAuth(t *testing.T) {
+	mux := testRouter(&fakeService{status: http.StatusOK}, nil)
+
+	for _, tc := range []struct{ method, path string }{
+		{http.MethodPost, "/v1/decks/" + uuid.NewString() + "/share"},
+		{http.MethodGet, "/v1/shared/ABCDEF2345"},
+		{http.MethodPost, "/v1/shared/ABCDEF2345/clone"},
+	} {
+		rec := doJSON(t, mux, tc.method, tc.path, nil)
+		assert.Equal(t, http.StatusUnauthorized, rec.Code, "%s %s", tc.method, tc.path)
+	}
 }
 
 func TestHandlerExportDeck(t *testing.T) {

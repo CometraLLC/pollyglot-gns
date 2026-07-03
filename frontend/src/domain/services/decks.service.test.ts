@@ -136,6 +136,22 @@ describe('decksService request contract', () => {
 		expect(result.imported).toBe(2)
 	})
 
+	it('shares, unshares, previews, and clones via the shared endpoints', async () => {
+		mocked.post.mockResolvedValue({ data: { share_code: 'ABCDEF2345' } })
+		await decksService.shareDeck('d1')
+		expect(mocked.post).toHaveBeenCalledWith('/v1/decks/d1/share')
+
+		await decksService.unshareDeck('d1')
+		expect(mocked.delete).toHaveBeenCalledWith('/v1/decks/d1/share')
+
+		mocked.get.mockResolvedValue({ data: { name: 'X' } })
+		await decksService.getSharedDeck('ABCDEF2345')
+		expect(mocked.get).toHaveBeenCalledWith('/v1/shared/ABCDEF2345')
+
+		await decksService.cloneSharedDeck('ABCDEF2345')
+		expect(mocked.post).toHaveBeenCalledWith('/v1/shared/ABCDEF2345/clone')
+	})
+
 	it('unwraps response data', async () => {
 		const decks = [{ id: 'd1' }]
 		mocked.get.mockResolvedValue({ data: decks })

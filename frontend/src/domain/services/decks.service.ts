@@ -7,6 +7,7 @@ export interface Deck {
   target_lang: string;
   card_count: number;
   due_count: number;
+  share_code?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -42,6 +43,14 @@ export interface CardInput {
 
 /** Study rating: 0 Forgot … 4 Got it! */
 export type StudyRating = 0 | 1 | 2 | 3 | 4;
+
+export interface SharedDeckPreview {
+  name: string;
+  source_lang: string;
+  target_lang: string;
+  card_count: number;
+  sample_cards: Array<{ front: string; back: string }>;
+}
 
 export interface ImportResult {
   imported: number;
@@ -109,6 +118,25 @@ export const decksService = {
       params: { format },
       responseType: 'blob',
     });
+    return response.data;
+  },
+
+  async shareDeck(deckId: string): Promise<{ share_code: string }> {
+    const response = await apiClient.post<{ share_code: string }>(`/v1/decks/${deckId}/share`);
+    return response.data;
+  },
+
+  async unshareDeck(deckId: string): Promise<void> {
+    await apiClient.delete(`/v1/decks/${deckId}/share`);
+  },
+
+  async getSharedDeck(code: string): Promise<SharedDeckPreview> {
+    const response = await apiClient.get<SharedDeckPreview>(`/v1/shared/${code}`);
+    return response.data;
+  },
+
+  async cloneSharedDeck(code: string): Promise<Deck> {
+    const response = await apiClient.post<Deck>(`/v1/shared/${code}/clone`);
     return response.data;
   },
 

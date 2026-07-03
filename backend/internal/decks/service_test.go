@@ -193,6 +193,31 @@ func (f *fakeRepo) GetDueCards(_ context.Context, deckID uuid.UUID, before time.
 	return due, nil
 }
 
+func (f *fakeRepo) SetShareCode(_ context.Context, deckID uuid.UUID, code *string) error {
+	if f.forceErr != nil {
+		return f.forceErr
+	}
+	for _, d := range f.decks {
+		if code != nil && d.ShareCode != nil && *d.ShareCode == *code {
+			return errors.New("duplicate share code")
+		}
+	}
+	f.decks[deckID].ShareCode = code
+	return nil
+}
+
+func (f *fakeRepo) GetDeckByShareCode(_ context.Context, code string) (*models.Deck, error) {
+	if f.forceErr != nil {
+		return nil, f.forceErr
+	}
+	for _, d := range f.decks {
+		if d.ShareCode != nil && *d.ShareCode == code && d.DeletedAt == nil {
+			return d, nil
+		}
+	}
+	return nil, gorm.ErrRecordNotFound
+}
+
 func (f *fakeRepo) CreateReview(_ context.Context, review *models.Review) error {
 	if f.forceErr != nil {
 		return f.forceErr
