@@ -91,6 +91,7 @@ func Card() *CardFactory {
 		DeckID:       uuid.New(),
 		Front:        "こんにちは",
 		Back:         "hello",
+		CardType:     models.CardTypeBasic,
 		EaseFactor:   2.5,
 		IntervalDays: 0,
 		Repetitions:  0,
@@ -104,6 +105,11 @@ func (f *CardFactory) WithID(id uuid.UUID) *CardFactory     { f.card.ID = id; re
 func (f *CardFactory) WithDeckID(id uuid.UUID) *CardFactory { f.card.DeckID = id; return f }
 func (f *CardFactory) WithFront(front string) *CardFactory  { f.card.Front = front; return f }
 func (f *CardFactory) WithBack(back string) *CardFactory    { f.card.Back = back; return f }
+func (f *CardFactory) Cloze(front string) *CardFactory {
+	f.card.CardType = models.CardTypeCloze
+	f.card.Front = front
+	return f
+}
 
 // WithSRS sets the scheduling state (ease factor, interval days, repetitions).
 func (f *CardFactory) WithSRS(ease float64, intervalDays, repetitions int) *CardFactory {
