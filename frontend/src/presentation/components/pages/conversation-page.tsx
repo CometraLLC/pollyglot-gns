@@ -65,7 +65,7 @@ export function ConversationPage() {
 			)}
 
 			{conversations && conversations.length === 0 && (
-				<div className='rounded-xl border border-dashed p-12 text-center'>
+				<div className='neu-inset rounded-xl p-12 text-center'>
 					<MessagesSquare className='mx-auto mb-4 h-8 w-8 text-muted-foreground' />
 					<p className='mb-1 font-medium'>No conversations yet</p>
 					<p className='text-sm text-muted-foreground'>
@@ -80,7 +80,7 @@ export function ConversationPage() {
 						<Link
 							key={conversation.id}
 							href={`/pollyglot/conversation/${conversation.id}`}
-							className='group rounded-xl border bg-card p-6 transition-colors hover:border-emerald-500/50 hover:bg-accent'
+							className='group neu-card neu-interactive p-6'
 						>
 							<MessagesSquare className='mb-4 h-5 w-5 text-emerald-600 dark:text-emerald-400' />
 							<h2 className='mb-1 text-sm font-semibold'>{conversation.title}</h2>

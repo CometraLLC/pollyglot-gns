@@ -20,7 +20,7 @@ function MessageBubble({ message }: { message: Message }) {
 				className={cn(
 					'max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
 					isTutor
-						? 'rounded-bl-sm border bg-card'
+						? 'neu-card-sm rounded-2xl rounded-bl-sm'
 						: 'rounded-br-sm bg-emerald-600 text-white'
 				)}
 			>
@@ -67,7 +67,7 @@ export function ConversationChatPage({ conversationId }: { conversationId: strin
 				)}
 			</div>
 
-			<div className='flex-1 space-y-3 overflow-y-auto rounded-xl border bg-muted/20 p-4'>
+			<div className='neu-inset flex-1 space-y-3 overflow-y-auto rounded-xl p-4'>
 				{isPending && <p className='text-sm text-muted-foreground'>Loading conversation…</p>}
 				{isError && (
 					<p className='text-sm text-red-600 dark:text-red-400'>

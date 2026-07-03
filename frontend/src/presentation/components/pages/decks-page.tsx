@@ -116,7 +116,7 @@ function DeckCard({ deck }: { deck: Deck }) {
 	const deleteDeck = useDeleteDeck()
 
 	return (
-		<div className='group rounded-xl border bg-card p-6 transition-colors hover:border-emerald-500/50'>
+		<div className='group neu-card neu-interactive p-6'>
 			<div className='mb-4 flex items-start justify-between'>
 				<Layers className='h-5 w-5 text-emerald-600 dark:text-emerald-400' />
 				<div className='flex gap-1 opacity-100 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100 lg:group-focus-within:opacity-100'>
@@ -220,7 +220,7 @@ export function DecksPage() {
 			)}
 
 			{decks && decks.length === 0 && (
-				<div className='rounded-xl border border-dashed p-12 text-center'>
+				<div className='neu-inset rounded-xl p-12 text-center'>
 					<Layers className='mx-auto mb-4 h-8 w-8 text-muted-foreground' />
 					<p className='mb-1 font-medium'>No decks yet</p>
 					<p className='text-sm text-muted-foreground'>

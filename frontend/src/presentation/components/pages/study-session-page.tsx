@@ -50,7 +50,7 @@ export function StudySessionPage({ deckId }: { deckId: string }) {
 
 	if (session.length === 0) {
 		return (
-			<div className='mx-auto max-w-xl rounded-xl border border-dashed p-12 text-center'>
+			<div className='mx-auto max-w-xl neu-inset rounded-xl p-12 text-center'>
 				<PartyPopper className='mx-auto mb-4 h-8 w-8 text-emerald-600 dark:text-emerald-400' />
 				<p className='mb-1 font-medium'>All caught up!</p>
 				<p className='mb-6 text-sm text-muted-foreground'>
@@ -65,7 +65,7 @@ export function StudySessionPage({ deckId }: { deckId: string }) {
 
 	if (index >= session.length) {
 		return (
-			<div className='mx-auto max-w-xl rounded-xl border border-dashed p-12 text-center'>
+			<div className='mx-auto max-w-xl neu-inset rounded-xl p-12 text-center'>
 				<PartyPopper className='mx-auto mb-4 h-8 w-8 text-emerald-600 dark:text-emerald-400' />
 				<p className='mb-1 font-medium'>Session complete</p>
 				<p className='mb-6 text-sm text-muted-foreground'>
@@ -120,7 +120,7 @@ export function StudySessionPage({ deckId }: { deckId: string }) {
 					aria-pressed={flipped}
 					aria-label={flipped ? 'Hide answer' : 'Show answer'}
 					onClick={toggleFlip}
-					className='relative block h-64 w-full cursor-pointer rounded-2xl border bg-card text-card-foreground shadow-lg transition-transform duration-500 [transform-style:preserve-3d] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500'
+					className='neu-card relative block h-64 w-full cursor-pointer rounded-2xl text-card-foreground transition-transform duration-500 [transform-style:preserve-3d] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500'
 					style={{ transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}
 				>
 					<span className='absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 [backface-visibility:hidden]'>
@@ -156,7 +156,7 @@ export function StudySessionPage({ deckId }: { deckId: string }) {
 						tabIndex={flipped ? 0 : -1}
 						disabled={reviewCard.isPending}
 						onClick={() => rate(value)}
-						className='rounded-full border px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:border-emerald-500 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:opacity-50'
+						className='neu-btn rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:opacity-50'
 					>
 						{label}
 					</button>

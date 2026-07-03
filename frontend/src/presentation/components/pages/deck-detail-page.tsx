@@ -100,7 +100,7 @@ function CardRow({ card, deckId }: { card: Card; deckId: string }) {
 	const due = new Date(card.due_at) <= new Date()
 
 	return (
-		<div className='flex items-center justify-between gap-4 rounded-lg border bg-card px-4 py-3'>
+		<div className='flex items-center justify-between gap-4 neu-card-sm px-4 py-3'>
 			<div className='min-w-0 flex-1'>
 				<p className='truncate font-medium'>{card.front}</p>
 				<p className='truncate text-sm text-muted-foreground'>{card.back}</p>
@@ -216,7 +216,7 @@ export function DeckDetailPage({ deckId }: { deckId: string }) {
 			)}
 
 			{cards && cards.length === 0 && (
-				<div className='rounded-xl border border-dashed p-12 text-center'>
+				<div className='neu-inset rounded-xl p-12 text-center'>
 					<p className='mb-1 font-medium'>No cards yet</p>
 					<p className='text-sm text-muted-foreground'>
 						Add the first word you want to remember.

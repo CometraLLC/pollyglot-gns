@@ -23,7 +23,7 @@ export function StudyPage() {
 			)}
 
 			{decks && decks.length === 0 && (
-				<div className='rounded-xl border border-dashed p-12 text-center'>
+				<div className='neu-inset rounded-xl p-12 text-center'>
 					<GraduationCap className='mx-auto mb-4 h-8 w-8 text-muted-foreground' />
 					<p className='mb-1 font-medium'>No decks to study</p>
 					<p className='mb-6 text-sm text-muted-foreground'>
@@ -44,7 +44,7 @@ export function StudyPage() {
 						<Link
 							key={deck.id}
 							href={`/pollyglot/study/${deck.id}`}
-							className='group rounded-xl border bg-card p-6 transition-colors hover:border-emerald-500/50 hover:bg-accent'
+							className='group neu-card neu-interactive p-6'
 						>
 							<GraduationCap className='mb-4 h-5 w-5 text-emerald-600 dark:text-emerald-400' />
 							<h2 className='mb-1 text-sm font-semibold'>{deck.name}</h2>
