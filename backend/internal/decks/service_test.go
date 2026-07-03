@@ -54,13 +54,16 @@ func (f *fakeRepo) GetDecksByUser(_ context.Context, userID uuid.UUID) ([]DeckWi
 	var result []DeckWithCount
 	for _, d := range f.decks {
 		if d.UserID == userID && d.DeletedAt == nil {
-			var count int64
+			var count, due int64
 			for _, c := range f.cards {
 				if c.DeckID == d.ID && c.DeletedAt == nil {
 					count++
+					if !c.DueAt.After(time.Now()) {
+						due++
+					}
 				}
 			}
-			result = append(result, DeckWithCount{Deck: *d, CardCount: count})
+			result = append(result, DeckWithCount{Deck: *d, CardCount: count, DueCount: due})
 		}
 	}
 	return result, nil
@@ -75,6 +78,19 @@ func (f *fakeRepo) GetDeckByID(_ context.Context, id uuid.UUID) (*models.Deck, e
 		return nil, gorm.ErrRecordNotFound
 	}
 	return d, nil
+}
+
+func (f *fakeRepo) CountDueCards(_ context.Context, deckID uuid.UUID, before time.Time) (int64, error) {
+	if f.forceErr != nil {
+		return 0, f.forceErr
+	}
+	var due int64
+	for _, c := range f.cards {
+		if c.DeckID == deckID && c.DeletedAt == nil && !c.DueAt.After(before) {
+			due++
+		}
+	}
+	return due, nil
 }
 
 func (f *fakeRepo) CountCards(_ context.Context, deckID uuid.UUID) (int64, error) {
@@ -251,11 +267,12 @@ func TestCreateDeck(t *testing.T) {
 func TestListDecks(t *testing.T) {
 	userID := uuid.New()
 
-	t.Run("returns only the user's decks with card counts", func(t *testing.T) {
+	t.Run("returns only the user's decks with card and due counts", func(t *testing.T) {
 		repo := newFakeRepo()
 		deck := seedDeck(repo, userID)
-		seedCard(repo, deck.ID)
-		seedCard(repo, deck.ID)
+		seedCard(repo, deck.ID) // due now (factory default)
+		future := seedCard(repo, deck.ID)
+		future.DueAt = time.Now().Add(72 * time.Hour)
 		seedDeck(repo, uuid.New()) // someone else's deck
 		svc := NewService(repo)
 
@@ -266,6 +283,7 @@ func TestListDecks(t *testing.T) {
 		require.Len(t, resp, 1)
 		assert.Equal(t, deck.ID, resp[0].ID)
 		assert.EqualValues(t, 2, resp[0].CardCount)
+		assert.EqualValues(t, 1, resp[0].DueCount, "future cards are not due")
 	})
 
 	t.Run("returns empty list when the user has no decks", func(t *testing.T) {
@@ -295,6 +313,7 @@ func TestGetDeck(t *testing.T) {
 		assert.Equal(t, http.StatusOK, status)
 		assert.Equal(t, deck.ID, resp.ID)
 		assert.EqualValues(t, 1, resp.CardCount)
+		assert.EqualValues(t, 1, resp.DueCount)
 	})
 
 	t.Run("404 on unknown deck", func(t *testing.T) {

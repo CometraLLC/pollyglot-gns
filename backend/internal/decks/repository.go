@@ -15,6 +15,7 @@ import (
 type DeckWithCount struct {
 	models.Deck
 	CardCount int64
+	DueCount  int64
 }
 
 type Repository interface {
@@ -22,6 +23,7 @@ type Repository interface {
 	GetDecksByUser(ctx context.Context, userID uuid.UUID) ([]DeckWithCount, error)
 	GetDeckByID(ctx context.Context, id uuid.UUID) (*models.Deck, error)
 	CountCards(ctx context.Context, deckID uuid.UUID) (int64, error)
+	CountDueCards(ctx context.Context, deckID uuid.UUID, before time.Time) (int64, error)
 	UpdateDeck(ctx context.Context, deck *models.Deck) error
 	SoftDeleteDeck(ctx context.Context, id uuid.UUID) error
 
@@ -57,13 +59,18 @@ func (r *repository) GetDecksByUser(ctx context.Context, userID uuid.UUID) ([]De
 		return nil, err
 	}
 
+	now := time.Now()
 	result := make([]DeckWithCount, 0, len(decks))
 	for _, deck := range decks {
 		count, err := r.CountCards(ctx, deck.ID)
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, DeckWithCount{Deck: deck, CardCount: count})
+		due, err := r.CountDueCards(ctx, deck.ID, now)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, DeckWithCount{Deck: deck, CardCount: count, DueCount: due})
 	}
 	return result, nil
 }
@@ -84,6 +91,15 @@ func (r *repository) CountCards(ctx context.Context, deckID uuid.UUID) (int64, e
 	err := r.db.WithContext(ctx).
 		Model(&models.Card{}).
 		Where("deck_id = ? AND deleted_at IS NULL", deckID).
+		Count(&count).Error
+	return count, err
+}
+
+func (r *repository) CountDueCards(ctx context.Context, deckID uuid.UUID, before time.Time) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).
+		Model(&models.Card{}).
+		Where("deck_id = ? AND deleted_at IS NULL AND due_at <= ?", deckID, before).
 		Count(&count).Error
 	return count, err
 }

@@ -76,13 +76,14 @@ func (s *service) getOwnedCard(ctx context.Context, userID, cardID uuid.UUID) (*
 	return card, http.StatusOK, nil
 }
 
-func deckResponse(deck *models.Deck, cardCount int64) *DeckResponse {
+func deckResponse(deck *models.Deck, cardCount, dueCount int64) *DeckResponse {
 	return &DeckResponse{
 		ID:         deck.ID,
 		Name:       deck.Name,
 		SourceLang: deck.SourceLang,
 		TargetLang: deck.TargetLang,
 		CardCount:  cardCount,
+		DueCount:   dueCount,
 		CreatedAt:  deck.CreatedAt,
 		UpdatedAt:  deck.UpdatedAt,
 	}
@@ -119,7 +120,7 @@ func (s *service) CreateDeck(ctx context.Context, userID uuid.UUID, req CreateDe
 	if err := s.repo.CreateDeck(ctx, deck); err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
-	return deckResponse(deck, 0), http.StatusCreated, nil
+	return deckResponse(deck, 0, 0), http.StatusCreated, nil
 }
 
 func (s *service) ListDecks(ctx context.Context, userID uuid.UUID) ([]DeckResponse, int, error) {
@@ -131,7 +132,7 @@ func (s *service) ListDecks(ctx context.Context, userID uuid.UUID) ([]DeckRespon
 	result := make([]DeckResponse, 0, len(decks))
 	for _, d := range decks {
 		deck := d.Deck
-		result = append(result, *deckResponse(&deck, d.CardCount))
+		result = append(result, *deckResponse(&deck, d.CardCount, d.DueCount))
 	}
 	return result, http.StatusOK, nil
 }
@@ -146,7 +147,11 @@ func (s *service) GetDeck(ctx context.Context, userID, deckID uuid.UUID) (*DeckR
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
-	return deckResponse(deck, count), http.StatusOK, nil
+	due, err := s.repo.CountDueCards(ctx, deckID, time.Now())
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+	return deckResponse(deck, count, due), http.StatusOK, nil
 }
 
 func (s *service) UpdateDeck(ctx context.Context, userID, deckID uuid.UUID, req UpdateDeckRequest) (*DeckResponse, int, error) {
@@ -171,7 +176,11 @@ func (s *service) UpdateDeck(ctx context.Context, userID, deckID uuid.UUID, req 
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
-	return deckResponse(deck, count), http.StatusOK, nil
+	due, err := s.repo.CountDueCards(ctx, deckID, time.Now())
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+	return deckResponse(deck, count, due), http.StatusOK, nil
 }
 
 func (s *service) DeleteDeck(ctx context.Context, userID, deckID uuid.UUID) (int, error) {
