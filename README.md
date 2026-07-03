@@ -55,7 +55,7 @@ signing in):
 | Decks & cards CRUD | ✅ | `/pollyglot/decks`, API `/v1/decks` |
 | Spaced-repetition study (SM-2) | ✅ | `/pollyglot/study`, API `/v1/cards/{id}/review` + `/v1/decks/{id}/queue` |
 | Translate (dictionary provider, save-to-deck) | ✅ | `/pollyglot/translate`, API `/v1/translate` |
-| Conversation practice | 🔜 | Pollyglot#15 |
+| Conversation practice (Socratic tutor) | ✅ | `/pollyglot/conversation`, API `/v1/conversations` |
 | Progress & stats | 🔜 | Pollyglot#16 |
 
 Every engineering decision is logged with rationale in
